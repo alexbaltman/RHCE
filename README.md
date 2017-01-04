@@ -1,25 +1,12 @@
-# RHCE - Interactive Study Guide
+# RHCE on RHEL-7 - Study Guide
 
-### For Practice follow these steps:
-1. Choose first chapter
-2. Review chapter docs
+## How to use
 
-3. Setup     walk through
-4. Do        walk through
-
-6. Setup     practice exercise
-7. Do        practice exercise
-8. Grade     practice exercise
-9. Teardown  practice exercise
-
-10. Setup    lab
-11. Do       lab
-12. Grade    lab
-13. Teardown lab
-
-14. If Chapter: Choose Next Chapter; else GOTO #16
-
-15. GOTO #
-16. Finish
-
-### For Development:
+## Highlights from notes
+- ch2 p3 - Config IPv6
+- ch3 p1 - Config Network Teaming
+- ch4 p1 - Config firewall
+- ch4 p2 - Manage Rich Rules
+- ch4 p3 - Masq. and Port forwarding
+- ch5 p2 - Config caching Nameserver
+- ch6 p1 - Config send only email
