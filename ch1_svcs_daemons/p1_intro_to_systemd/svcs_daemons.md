@@ -17,6 +17,8 @@ systemctl -t help -l  # prevent ellipsize
 3. Path units have a .path extension and are used to delay the activation of a service until a specific file system change occurs e.g. spool dirs
 
 systemctl status <name.type>
+
+
 | Keyword | Description |
 | --- | --- |
 | loaded  | Unit config file has been processed |
