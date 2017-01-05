@@ -1,0 +1,40 @@
+---
+- hosts: all
+  become: yes
+  become_method: su
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - name: Restart server
+      command: /sbin/shutdown -r -t sec 15
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - name: Check root priv.s 
+      file:
+        path: /root/mypriv_testfile
+        state: touch
+    - name: Check for default target
+      # to see targets: systemctl list-units --type=target --all
+      command: systemctl get-default 
+      register: default_target
+    - name: Fail if default target is wrong
+      fail:
+        msg: "default target == {{ default_target.stdout }}, wanted graphical.target"
+      when: default_target.stdout != "graphical.target"
+    - name: Check rsyslog service is active and on
+      service:
+        name: rsyslog
+        state: started
+        enabled: yes
+      register: ischanged
+    - name: Fail if grading changed state
+      fail:
+        msg: "Failed to make httpd service persistent."
+      when: ischanged.changed
+    - debug:
+        msg: "You Passed!!!!"

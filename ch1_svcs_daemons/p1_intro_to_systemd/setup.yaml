@@ -15,3 +15,14 @@
       service:
         name: httpd
         enabled: no
+    - name: Remove repo file
+      file:
+        path: "/etc/yum.repos.d/*.repo"
+        state: absent
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. Turn httpd service on
+          2. Make the service persistent
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64

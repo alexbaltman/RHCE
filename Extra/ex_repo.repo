@@ -1,0 +1,4 @@
+[nameofmyrepo]
+baseurl=http://<providedbyRHCEexaminer>
+gpgkey=0
+enabled=1

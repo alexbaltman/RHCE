@@ -1,11 +1,28 @@
 ---
 - hosts: all
-  pre_tasks:
-    - assert:
-        that:
-          - ansible_version.major == 2
   become: yes
   become_method: sudo
   tasks:
-   - name: 
-
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - name: Remove repo file
+      file:
+        path: "/etc/yum.repos.d/*.repo"
+        state: absent
+    - service:
+        name: rsyslog
+        state: stopped
+        enabled: no
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. Reboot vagrant vm and catch bootloader menu
+          2. Recover Root Password via the bootloader method
+          3. Set Root Password to 'agent007'
+          4. Set default target to graphical
+          5. Start the rsyslog process
+          6. Make persistent the rsyslog process
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64

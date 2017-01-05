@@ -1,0 +1,28 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - name: Restart server
+      command: /sbin/shutdown -r -t sec 15
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - name: Check httpd service is active and on
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+      register: ischanged
+    - name: Fail if httpd is not set right
+      fail:
+        msg: "Failed to set httpd service correctly"
+      when: ischanged.changed
+    - debug:
+        msg: "You Passed!!!!"
