@@ -16,8 +16,7 @@ systemctl -t help -l  # prevent ellipsize
 2. Socket units have a .socket extension and represent IPC sockets - these are used to delay the start of a servie at boot time and to start less frequently used services on demand similar to xinetd. 
 3. Path units have a .path extension and are used to delay the activation of a service until a specific file system change occurs e.g. spool dirs
 
-systemctl status <name.type>
-
+### systemctl status <name.type>
 
 | Keyword | Description |
 | --- | --- |
