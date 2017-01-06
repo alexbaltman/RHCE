@@ -11,10 +11,32 @@
       file:
         path: "/etc/yum.repos.d/*.repo"
         state: absent
+    - name: Manage eth1 
+      command: sed -i 's/NM_CONTROLLED=no/NM_CONTROLLED=yes/' /etc/sysconfig/network-scripts/ifcfg-eth1
+    - name: Manage eth2
+      command: sed -i 's/NM_CONTROLLED=no/NM_CONTROLLED=yes/' /etc/sysconfig/network-scripts/ifcfg-eth2
+    - name: Reload config
+      command: nmcli con reload
+    - name: Create team0 profile
+      # Normally appended to end of cli and we would not do the following cmd: config '{"runner": {"name": "activebackup"}}'
+      command: nmcli con add type team con-name team0 ifname team0 
+    - name: Set runner
+      command: teamnl team0 setoption mode activebackup
+    - name: Create port from eth1
+      command: nmcli con add type team-slave ifname eth1 master team0
+    - name: Create port from eth2
+      command: nmcli con add type team-slave ifname eth2 master team0
+    - name: Set team0 ipaddr and method
+      command: nmcli con mod team0 ipv4.addresses 192.168.7.8/24 ipv4.method manual
+    - name: Bring up eth1 slave, which will bring up master
+      command: nmcli con up team-slave-eth1
+    - name: Bring up eth2 slave
+      command: nmcli con up team-slave-eth2
     - name: Set Practice Tasks
       blockinfile:
         dest: /etc/motd
         block: |
-          1. Setup host1 eth1 net int with IPv4 addr of 192.168.7.66/24 w/ no gw (using nmcli pref)
+          1. Change the runner for team0 to roundrobin from activebackup on host1
+          2. Check success by pinging 192.168.7.9 (host2) from the team int (can use ping -I). Make sure to check host2 eth1 is up JIC. 
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
