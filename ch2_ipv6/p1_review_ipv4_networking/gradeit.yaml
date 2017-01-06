@@ -18,5 +18,7 @@
       fail:
         msg: "eth1 ipv4 addr == {{ ansible_eth1.ipv4.address }}, wanted 192.168.7.66"
       when: ansible_eth1.ipv4.address != "192.168.7.66"
+    - name: Test ping from host1 to host2 on eth1 int
+      command: ping -c 3 -I eth1 "192.168.7.7"
     - debug:
         msg: "You Passed!!!!"

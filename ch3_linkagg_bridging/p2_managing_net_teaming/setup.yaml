@@ -18,10 +18,9 @@
     - name: Reload config
       command: nmcli con reload
     - name: Create team0 profile
-      # Normally appended to end of cli and we would not do the following cmd: config '{"runner": {"name": "activebackup"}}'
+      # Normally appended to end of cli like so: config '{"runner": {"name": "activebackup"}}'
+      # Defaults to roundrobin
       command: nmcli con add type team con-name team0 ifname team0 
-    - name: Set runner
-      command: teamnl team0 setoption mode activebackup
     - name: Create port from eth1
       command: nmcli con add type team-slave ifname eth1 master team0
     - name: Create port from eth2
@@ -36,7 +35,7 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1. Change the runner for team0 to roundrobin from activebackup on host1
+          1. Change the runner for team0 to activebackup from roundrobin on host1
           2. Check success by pinging 192.168.7.9 (host2) from the team int (can use ping -I). Make sure to check host2 eth1 is up JIC. 
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd

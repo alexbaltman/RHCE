@@ -25,5 +25,7 @@
       fail: 
         msg: "The runner for team0 is {{ runnertype.stdout }}, wanted activebackup"
       when: runnertype.stdout != "activebackup"
+    - name: Test ping from host1 to host2 on team0 int
+      command: ping -c 3 -I team0 "192.168.7.9"
     - debug:
         msg: "You Passed!!!!"
