@@ -1,11 +1,23 @@
 ---
 - hosts: all
-  pre_tasks:
-    - assert:
-        that:
-          - ansible_version.major == 2
   become: yes
   become_method: sudo
   tasks:
-   - name: 
-
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - name: Remove repo file
+      file:
+        path: "/etc/yum.repos.d/*.repo"
+        state: absent
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        # gw of fddb:fe2a:ab1e::c0a8:fe (setting up using nmcli pref)
+        block: |
+          1. Setup host2 eth1 net int with IPv6 addr of fddb:fe2a:ab1e::c0a8:2/64 (using  nmcli pref)
+          2. Check ping6 to gw fddb:fe2a:ab1e::1 and to itself
+          3. Setup host1 eth1 net int with IPv6 addr of fddb:fe2a:ab1e::c0a8:3/64 (using  nmcli pref)
+          4. Check ping6 to gw fddb:fe2a:ab1e::1 and to itself and host2 ipv6 addr
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64

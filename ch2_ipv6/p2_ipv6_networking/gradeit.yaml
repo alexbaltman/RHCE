@@ -1,0 +1,29 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - name: Restart server
+      command: /sbin/shutdown -r -t sec 15
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - name: Fail if ipv6 addr is wrong on host1
+      fail:
+        msg: "eth1 ipv6 addr == {{ ansible_eth1.ipv6[0].address }}, wanted fddb:fe2a:ab1e::c0a8:3"
+      when: ansible_hostname == "host1" and ansible_eth1.ipv6[0].address != "fddb:fe2a:ab1e::c0a8:3"
+    - name: Fail if ipv6 addr is wrong on host2
+      fail:
+        msg: "eth1 ipv6 addr == {{ ansible_eth1.ipv6.address }}, wanted fddb:fe2a:ab1e::c0a8:2"
+      when: ansible_hostname == "host2" and ansible_eth1.ipv6.address != "fddb:fe2a:ab1e::c0a8:2"
+    - name: Test ping6 from host1 to host2 on ipv6 int
+      command: ping6 -c 3 "fddb:fe2a:ab1e::c0a8:2"
+      when: ansible_hostname == "host1"
+    - debug:
+        msg: "You Passed!!!!"

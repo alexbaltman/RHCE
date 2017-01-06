@@ -15,7 +15,5 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1. Set system's default target to graphical.target (don't have to actually boot graphically though, just change the setting)
-          Optionally (won't be graded)
-          1. Restart server, editing kernel line to boot rescue.target
+          1. Setup host1 eth1 net int with IPv4 addr of 192.168.7.66/24 w/ no gw (using nmcli pref)
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
