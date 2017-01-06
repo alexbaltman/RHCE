@@ -21,3 +21,4 @@
           3. Setup host1 eth1 net int with IPv6 addr of fddb:fe2a:ab1e::c0a8:3/64 (using  nmcli pref)
           4. Check ping6 to gw fddb:fe2a:ab1e::1 and to itself and host2 ipv6 addr
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd

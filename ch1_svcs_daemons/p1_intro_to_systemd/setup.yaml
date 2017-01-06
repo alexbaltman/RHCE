@@ -26,3 +26,4 @@
           1. Turn httpd service on
           2. Make the service persistent
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd

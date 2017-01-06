@@ -9,3 +9,4 @@
   tasks:
    - name: 
 
+          Note2: You can see this message in /etc/motd

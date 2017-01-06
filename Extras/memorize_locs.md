@@ -1,6 +1,6 @@
 ## Memorize Locations of these
 - IPv6 Networking: man nmcli-examples --> Example #9
-
+- Network Teaming: /usr/share/doc/teamd ifcfgs and ifcfg-team-test0
 
 
 ## Other possible help

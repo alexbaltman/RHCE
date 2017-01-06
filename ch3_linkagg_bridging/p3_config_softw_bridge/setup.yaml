@@ -1,11 +1,20 @@
 ---
 - hosts: all
-  pre_tasks:
-    - assert:
-        that:
-          - ansible_version.major == 2
   become: yes
   become_method: sudo
   tasks:
-   - name: 
-
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - name: Remove repo file
+      file:
+        path: "/etc/yum.repos.d/*.repo"
+        state: absent
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. Setup host1 eth1 net int with IPv4 addr of 192.168.7.66/24 w/ no gw (using nmcli pref)
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd

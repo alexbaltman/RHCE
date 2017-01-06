@@ -19,3 +19,4 @@
           Optionally (won't be graded)
           1. Restart server, editing kernel line to boot rescue.target
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd
