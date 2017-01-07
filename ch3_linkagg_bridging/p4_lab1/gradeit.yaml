@@ -1,0 +1,31 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    #- name: Restart server
+      #command: /sbin/shutdown -r -t sec 15
+      #async: 0
+      #poll: 0
+    #- name: Wait for server to reboot
+      #local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      #become: false
+    - name: Check runner type of team0
+      command: bash -c "teamdctl team0 state | grep activebackup | awk '{print $2}'"
+      register: runnertype
+    - name: Fail if runner type is not activebackup
+      fail:
+        msg: "The runner for team0 is {{ runnertype.stdout }}, wanted activebackup"
+      when: runnertype.stdout != "activebackup"
+    - name: Fail if ipv4 addr is wrong on br0 on host1
+      fail:
+        msg: "br0 ipv4 addr == {{ ansible_br0.ipv4.address }}, wanted 192.168.7.8"
+      when: ansible_br0.ipv4.address != "192.168.7.8"
+    - name: Test ping from host1 to host2 on br0 int
+      command: ping -c 3 -I br0 "192.168.7.9"
+    - debug:
+        msg: "You Passed!!!!"

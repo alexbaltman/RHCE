@@ -18,7 +18,8 @@
         dest: /etc/motd
         block: |
           1. Set bridge (br0) on host1 w/ ip 192.168.7.8/24
-          2. (Optionally) Setup your .repo file and install bridge-utils package
-          3. Check success by pinging 192.168.7.9 (host2) from the bridge int (can use ping -I). Make sure to check host2 eth1 is up JIC. 
+          2. Check success by pinging 192.168.7.9 (host2) from the bridge int (can use ping -I). Make sure to check host2 eth1 is up JIC. 
+          Optionally (not graded)
+          1. Setup your .repo file and install bridge-utils package
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
