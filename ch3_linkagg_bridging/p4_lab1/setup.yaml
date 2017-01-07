@@ -20,8 +20,8 @@
           1. Create a team int called team0 w/ a activebackup runner using eth1 and eth2
           2. Create a bridge br0 w/ static ip addr of 192.168.7.8/24
           3. Turn off NetworkManager as it does not support teams and bridges together - you are on your own from here
-          4. Attach the team to the bridge
-          5. Check for success by pinging 192.168.7.9 (host2) from team0
+          4. Attach the team to the bridge using the ifcfg- files
+          5. Check for success by pinging 192.168.7.9 (host2) from br0 on host1
           Optionally (not graded)
           1. Setup your .repo file and install bridge-utils package
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
