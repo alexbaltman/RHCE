@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: host1
   become: yes
   become_method: sudo
   tasks:

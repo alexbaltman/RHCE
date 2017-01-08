@@ -16,9 +16,6 @@ Vagrant.configure("2") do |config|
     host1.vm.provision "shell" do |s|
       s.inline = "ifup eth1"
     end
-    host1.vm.provision :ansible do |ansible|
-      ansible.playbook = "setup.yaml"
-    end
   end
 
   config.vm.define "host2" do |host2|
@@ -35,4 +32,7 @@ Vagrant.configure("2") do |config|
     end
   end
 
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "setup.yaml"
+  end
 end
