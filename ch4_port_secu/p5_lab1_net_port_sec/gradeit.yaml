@@ -1,0 +1,43 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    #- name: Restart server
+      #command: /sbin/shutdown -r -t sec 15
+      #async: 0
+      #poll: 0
+    #- name: Wait for server to reboot
+      #local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      #become: false
+       #Could register this in less brittle fashion - what if there were 2 rules?
+    - name: Register work zone rules 
+      command: firewall-cmd --list-all --zone=work
+      register: workzonerules
+      when: ansible_hostname == "host1"
+    - name: Check for firewall rules
+      fail:
+        msg: 'Got: {{ workzonerules }}, expected these values: 192.168.6.66, and 999'
+      when: 
+        - ansible_hostname == "host1"
+        - "'192.168.6.66' not in workzonerules.stdout"
+        - "'999' not in workzonerules.stdout"
+    # Expect to fail on Perm denied
+    # No route to host means fw is not fwding, but Perm denied means fwding
+    - name: "Test host1 (eth1: 192.168.6.6) ssh con from host2 (eth1: 192.168.6.66) on port 999"
+      # Needs two -t -t to force tty b/c of ansible.
+      command: "ssh -tt -o StrictHostKeyChecking=no -p 999 192.168.6.6"
+      when: ansible_hostname == "host2"
+      register: issshfwded
+      failed_when: issshfwded.stderr != "Permission denied (publickey,gssapi-keyex,gssapi-with-mic)."
+    - name: "Test host1 (eth1: 192.168.6.6) ssh con from host2 (eth1: 192.168.6.66) port 22"
+      command: "ssh -tt -o StrictHostKeyChecking=no 192.168.6.6"
+      when: ansible_hostname == "host2"
+      register: issshfwded
+      failed_when: issshfwded.stderr != "Permission denied (publickey,gssapi-keyex,gssapi-with-mic)."
+    - debug:
+        msg: "You Passed!!!!"

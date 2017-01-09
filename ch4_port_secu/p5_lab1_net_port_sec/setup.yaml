@@ -1,12 +1,29 @@
 ---
-- hosts: all
-  pre_tasks:
-    - assert:
-        that:
-          - ansible_version.major == 2
+- hosts: host1
   become: yes
   become_method: sudo
   tasks:
-   - name: 
-
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - find: path=/etc/yum.repos.d
+      register: myfiles
+    - file: 
+        state: absent 
+        path: "{{ item.path }}"
+      with_items: "{{ myfiles.files }}"
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. Bind ssh to 999/tcp and 22/tcp
+          2. Route 192.168.6.66 through the work zone
+          3. Make 999 available in the work zone
+          4. Verify from host2 that ssh is open on ports 999 and 22
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
