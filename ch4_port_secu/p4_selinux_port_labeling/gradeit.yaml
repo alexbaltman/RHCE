@@ -15,6 +15,13 @@
       #local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
       #become: false
     # Can fail w/ no route to host as curl error, but that seems to mean firewall rejected request on host1
+    - name: Make sure firewall is operational on host1
+      service:
+        name: firewalld
+        state: started
+      register: isstarted
+      failed_when: isstarted.changed
+      when: ansible_hostname == "host1"
     - name: "Test host1 (eth1: 192.168.6.6) http connection from host2 192.168.6.66 (eth1)on port 82"
       command: curl http://192.168.6.6:82
       when: ansible_hostname == "host2"
