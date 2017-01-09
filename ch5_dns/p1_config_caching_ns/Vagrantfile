@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "centos/7"
+
+  config.vm.define "host1" do |host1|
+    host1.vm.network :private_network, ip: "192.168.6.6"
+    host1.vm.hostname = 'host1'
+    host1.vm.provider :virtualbox do |v|
+      v.memory = 1024
+      v.cpus = 4
+    end
+    # Workaround for eth1 not starting on boot sometimes
+    host1.vm.provision "shell" do |s|
+      s.inline = "ifup eth1"
+    end
+  end
+
+  config.vm.define "host2" do |host2|
+    host2.vm.network :private_network, ip: "192.168.6.66"
+    host2.vm.network :private_network, ip: "192.168.6.77"
+    host2.vm.hostname = 'host2'
+    host2.vm.provider :virtualbox do |v|
+      v.memory = 1024
+      v.cpus = 4
+    end
+    # Workaround for eth1 not starting on boot sometimes
+    host2.vm.provision "shell" do |s|
+      s.inline = "ifup eth1; ifup eth2"
+    end
+  end
+
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "setup.yaml"
+  end
+end
