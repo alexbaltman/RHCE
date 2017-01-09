@@ -1,12 +1,27 @@
 ---
-- hosts: all
-  pre_tasks:
-    - assert:
-        that:
-          - ansible_version.major == 2
+- hosts: host1
   become: yes
   become_method: sudo
   tasks:
-   - name: 
-
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - find: path=/etc/yum.repos.d
+      register: myfiles
+    - file: 
+        state: absent 
+        path: "{{ item.path }}"
+      with_items: "{{ myfiles.files }}"
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. Config host1 to fwd port 443 to port 22 for only host2 (192.168.7.66)
+          2. Test connection from host2 to host 1 (ssh -p 443). Permisson Denied should be good enough vs no route to host, which means it is not working.
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd

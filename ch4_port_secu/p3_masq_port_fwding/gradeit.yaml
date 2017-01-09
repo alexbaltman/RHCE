@@ -1,0 +1,40 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    #- name: Restart server
+      #command: /sbin/shutdown -r -t sec 15
+      #async: 0
+      #poll: 0
+    #- name: Wait for server to reboot
+      #local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      #become: false
+      # Could register this in less brittle fashion - what if there were 2 rules?
+    - name: Register rich rule (should be just one)
+      command: firewall-cmd --list-rich-rules
+      register: richrules
+      when: ansible_hostname == "host1"
+    - name: Check for rich rule settings
+      fail:
+        msg: 'Got: {{ richrules }}, expected these values: 192.168.6.66, to-port=22, 443, and forward-port'
+      when: 
+        - ansible_hostname == "host1"
+        - "'192.168.6.66' not in richrules.stdout"
+        - "'forward-port' not in richrules.stdout"
+        - "'443' not in richrules.stdout"
+        - "'to-port=22' not in richrules.stdout"
+    # Expect to fail on Perm denied
+    # No route to host means fw is not fwding, but Perm denied means fwding
+    - name: "Test host1 (eth1: 192.168.6.6) ssh con from host2 (eth1: 192.168.6.66)"
+      # Needs two -t -t to force tty b/c of ansible.
+      command: "ssh -t -t -o StrictHostKeyChecking=no -p 443 192.168.6.6"
+      when: ansible_hostname == "host2"
+      register: issshfwded
+      failed_when: issshfwded.stderr != "Permission denied (publickey,gssapi-keyex,gssapi-with-mic)."
+    - debug:
+        msg: "You Passed!!!!"
