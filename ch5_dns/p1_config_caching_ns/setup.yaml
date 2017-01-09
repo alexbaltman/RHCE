@@ -8,10 +8,10 @@
         that:
           - ansible_version.major == 2
     - yum:
-        name: httpd
+        name: unbound
         state: present
     - service:
-        name: httpd 
+        name: unbound 
         state: started
         enabled: yes
     - find: path=/etc/yum.repos.d
@@ -20,12 +20,6 @@
         state: absent 
         path: "{{ item.path }}"
       with_items: "{{ myfiles.files }}"
-    - file:
-        state: touch
-        path: /var/www/html/index.html
-    - lineinfile:
-        dest: /var/www/html/index.html
-        line: "Awesome broh!"
     - service:
         name: firewalld
         state: started
@@ -34,10 +28,6 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1. Allow only host2 eth1 (192.168.6.66) to get to http service on host1, using the default firewalld zone
-          2. Log all new cons to the new http server (host1), using the firewalld service
-          3. Prefix each log msg with "NEW HTTP "
-          4. Set log level to notice
-          5. rate limit log messages for 3 messages per second
+          1.
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd

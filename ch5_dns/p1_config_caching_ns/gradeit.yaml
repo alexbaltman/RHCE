@@ -7,38 +7,42 @@
       assert:
         that:
           - ansible_version.major == 2
-    - name: Restart server
-      command: /sbin/shutdown -r -t sec 15
-      async: 0
-      poll: 0
-    - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
-      become: false
+    #- name: Restart server
+    #  command: /sbin/shutdown -r -t sec 15
+    #  async: 0
+    #  poll: 0
+    #- name: Wait for server to reboot
+    #  local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+    #  become: false
     # Could register this in less brittle fashion - what if there were 2 rules?
-    - name: Register rich rule (should be just one)
-      command: firewall-cmd --list-rich-rules
-      register: richrules
+    - name: Get public/default zone config
+      command: firewall-cmd --list-all
+      register: pubzone
       when: ansible_hostname == "host1"
-    - name: Check for rich rule settings
+    - name: Check for public/default zone settings
       fail:
-        msg: 'Got: {{ richrules }}, expected: rule family="ipv4" source address="192.168.6.6" service name="http" log prefix="NEW HTTP " level="notice" limit value="3/s" accept'
+        msg: 'Got: {{ pubzone }}, expected: dns in services for the public/default zone'
       when: 
         - ansible_hostname == "host1"
-        - "'192.168.6.66' not in richrules.stdout"
-        - "'http' not in richrules.stdout"
-        - "'prefix' not in richrules.stdout"
-        - "'NEW HTTP ' not in richrules.stdout"
-        - "'notice' not in richrules.stdout"
-        - "'3/s' not in richrules.stdout"
-    # Can fail w/ no route to host as curl error, but that seems to mean firewall rejected request on host1
-    - name: "Test host1 (eth1: 192.168.6.6) http connection from host2 192.168.6.66 (eth1)"
-      command: curl --interface eth1 http://192.168.6.6
+        - "'dns' not in pubzone.stdout"
+    - name: Create repo file
+      file:
+        state: touch
+        path: /etc/yum.repos.d/myrepo.repo
+    - name: Setup repo 
+      blockinfile:
+        dest: /etc/yum.repos.d/myrepo.repo
+        block: |
+          [myrepo]
+          gpgcheck=0
+          enabled=1
+          baseurl=http://mirror.centos.org/centos/7/os/x86_64
+    - name: Install dig and host cmds for testing
+      yum:
+        name: bind-utils
+        state: present
+    - name: "Test host2 dns access to host1 (eth1: 192.168.6.6)"
+      command: dig @192.168.6.6 A google.com
       when: ansible_hostname == "host2"
-    # Expect this task to fail:
-    - name: "Test host1 (eth1: 192.168.6.6) http connection from host2 192.168.6.77 (eth2)"
-      command: curl --interface eth2 http://192.168.6.6
-      register: iswebpage
-      when: ansible_hostname == "host2"
-      failed_when: iswebpage.stdout == "Awesome broh!"
     - debug:
         msg: "You Passed!!!!"
