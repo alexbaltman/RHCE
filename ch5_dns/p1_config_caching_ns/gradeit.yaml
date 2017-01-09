@@ -14,7 +14,7 @@
     - name: Wait for server to reboot
       local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
       become: false
-     Could register this in less brittle fashion - what if there were 2 rules?
+     # Could register this in less brittle fashion - what if there were 2 rules?
     - name: Get public/default zone config
       command: firewall-cmd --list-all
       register: pubzone
@@ -44,5 +44,14 @@
     - name: "Test host2 dns access to host1 (eth1: 192.168.6.6)"
       command: dig @192.168.6.6 A google.com
       when: ansible_hostname == "host2"
+    - name: "Test host1 dump cache"
+      command: unbound-control dump_cache
+      when: ansible_hostname == "host1"
+    - name: "Test host1 flush cache"
+      command: unbound-control flush google.com
+      when: ansible_hostname == "host1"
+    - name: "Test host1 dump cache again"
+      command: unbound-control dump_cache
+      when: ansible_hostname == "host1"
     - debug:
         msg: "You Passed!!!!"
