@@ -28,6 +28,17 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1.
+          1. Have unbound listen on all interfaces
+          2. Allow 192.168.6.0/24 network to query server
+          3. Exempt example.com from DNSSEC
+          4. Forward all queries to google dns (8.8.8.8)
+          5. Allow access to dns svc
+          6. Check if you can query host1 from host2
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
+
+# You may check this problem set w/ a few tools:
+# unbound-checkconf for unbound.conf syntax errors
+# unbound-control dump_cache to see if you can get at its contents before and after a query to see the changes
+# unbound-control flush <myrr> to purge it from the cache
+# dig/host to query @192.168.6.6 to test queries
