@@ -1,0 +1,63 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+    - yum:
+        name: bind-utils
+        state: present
+    - yum:
+        name: unbound
+        state: present
+    - lineinfile:
+        dest: /etc/unbound/unbound.conf
+        regexp: '\t# interface: 0.0.0.0$'
+        line: '        interface: 0.0.0.0'
+    - lineinfile:
+        dest: /etc/unbound/unbound.conf
+        regexp: '\t# access-control: 0.0.0.0/0 refuse$'
+        line: '        access-control: 192.168.6.6/24 allow'
+    - lineinfile:
+        dest: /etc/unbound/unbound.conf
+        regexp: '\t# domain-insecure: "example.com"$'
+        line: '        domain-insecure: "example.com"'
+    - service:
+        name: unbound 
+        state: started
+        enabled: yes
+  # mess up resolv.conf
+    - file:
+        path: /etc/resolv.conf
+        state: absent
+    - file:
+        path: /etc/resolv.conf
+        state: touch
+    - lineinfile:
+        dest: /etc/resolv.conf
+        line: 'search example.com'
+    - lineinfile:
+        dest: /etc/resolv.conf
+        line: 'nameserver 10.10.10.10'
+    - find: path=/etc/yum.repos.d
+      register: myfiles
+    - file: 
+        state: absent 
+        path: "{{ item.path }}"
+      with_items: "{{ myfiles.files }}"
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - command: firewall-cmd --permanent --add-service=dns
+    - command: firewall-cmd --reload
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. host1 is a caching DNS server. It's host resolution is broken, fix DNS resolution for google.com on host1
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd
