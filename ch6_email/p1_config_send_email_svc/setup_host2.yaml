@@ -1,0 +1,67 @@
+---
+- hosts: host2
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    ### Setup sendmail as SMTP/MSA server
+    - yum: name=sendmail state=present
+    - yum: name=sendmail-cf state=present
+    - lineinfile:
+        dest: /etc/mail/sendmail.mc
+        regexp: "DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl"
+        line: "dnl DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl"
+    - shell: "m4 /etc/mail/sendmail.mc > /etc/mail/sendmail.cf"
+    - lineinfile:
+        dest: /etc/mail/local-host-names
+        line: example.com
+    - service:
+        name: sendmail
+        state: started
+        enabled: yes
+        # Test mail from root: echo "Subject: test" | /usr/lib/sendmail -v vagrant
+        # Verify received sendmail, by logging in as vagrant, install mailx pkg, and run "mail" and you will see the msg.
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    # smtp: port 25
+    - command: firewall-cmd --permanent --add-service=smtp
+    - command: firewall-cmd --reload
+    ### Setup Access for MUAs (mail user agents) e.g. outlook or mutt to have access to mail
+    - yum: name=dovecot state=present
+    - yum: name=mutt state=present
+    - lineinfile:
+        dest: /etc/dovecot/dovecot.conf
+        regexp: '#protocols = imap pop3 lmtp'
+        line:  'protocols = imap pop3'
+    - lineinfile:
+        dest: /etc/dovecot/conf.d/10-mail.conf
+        regexp: '#mail_location ='
+        line: 'mail_location = mbox:~/mail:INBOX=/var/mail/%u'
+    # http://wiki2.dovecot.org/Errors/ChgrpNoPerm
+    - shell: "chmod 0600 /var/mail/*"
+    - service:
+        name: dovecot
+        state: started
+        enabled: yes
+    # this should work now: mutt -f imap://vagrant:vagrant@localhost
+    # imaps: port 143
+    - command: firewall-cmd --permanent --add-service=imaps
+    # pop3: port 110
+    - command: firewall-cmd --permanent --add-service=pop3s
+    # secure (tls/ssl) imaps
+    - command: firewall-cmd --permanent --add-port=993/tcp
+    # secure (tls/ssl) pop3
+    - command: firewall-cmd --permanent --add-port=995/tcp
+    - command: firewall-cmd --reload
+
+# Can verify mail arrives on other side of #4 if you have proper imap server running. Just run: "mutt -f imaps://imapX.example.com"
+#
+# References:
+# 1. https://sachinsharm.wordpress.com/2013/08/19/setting-up-sendmail-on-centosrhel-6-3/
+# 2. https://sachinsharm.wordpress.com/2013/08/19/setting-up-dovecot-on-centosrhel-6-3/
