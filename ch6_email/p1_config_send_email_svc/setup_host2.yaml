@@ -14,7 +14,7 @@
     - lineinfile:
         dest: /etc/mail/sendmail.mc
         regexp: "DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl"
-        line: "dnl DAEMON_OPTIONS(`Port=smtp,Addr=127.0.0.1, Name=MTA')dnl"
+        line: "DAEMON_OPTIONS(`Port=smtp,Addr=0.0.0.0, Name=MTA')dnl"
     - shell: "m4 /etc/mail/sendmail.mc > /etc/mail/sendmail.cf"
     - lineinfile:
         dest: /etc/mail/local-host-names
