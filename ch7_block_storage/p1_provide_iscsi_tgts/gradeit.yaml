@@ -1,0 +1,69 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    #- name: Restart server
+    #  command: /sbin/shutdown -r 1
+    #  async: 0
+    #  poll: 0
+    #- name: Wait for server to reboot
+    #  local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+    #  become: false
+    - yum: name=iscsi-initiator-utils state=present
+    # Needs backrefs=yes or it will not be idempotent - not sure why
+    - lineinfile:
+        dest: /etc/iscsi/initiatorname.iscsi
+        regexp: "InitiatorName=iqn.1994-05.com.redhat:*"
+        line: "InitiatorName=iqn.2017-01.com.example:host2" 
+        backrefs: yes
+    - service:
+        name: iscsi
+        state: started
+        enabled: yes
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - name: Get host1 target iqn 
+      command: bash -c "iscsiadm -m discovery -t st -p 192.168.6.6 | awk '{print $2}'"
+      register: target_iqn
+    - name: Login to host1 target
+      command: "iscsiadm -m node -T {{ target_iqn.stdout }} -p 192.168.6.6 -l"
+    - name: Get disk name
+      command: bash -c "iscsiadm -m session -P3 | grep 'Attached scsi disk sd' | awk '{print $4}'"
+      register: iscsi_disk
+    # Test if dev is mounted so we can skip mkfs and make play idempotent
+    - name: Test if iscsi_disk is already mounted
+      # I was getting mount usage error until moved from command: to shell:
+      shell: "mount -l -t xfs | grep {{ iscsi_disk.stdout }}"
+      register: ismounted
+    - debug: var=iscsi_disk
+    - debug: var=ismounted
+    # Using -f (force) to make play idempotent, could also register var and use when:
+    # Also, it has to be after -t option
+    - name: Create Filesystem
+      command: "mkfs -t xfs -f /dev/{{ iscsi_disk.stdout }}"
+      when: iscsi_disk.stdout not in ismounted.stdout
+    - name: Get UUID of disk
+      command: bash -c "blkid /dev/{{ iscsi_disk.stdout }} | awk '{print $2}'"
+      register: uuid
+    - name: Create dir for disk to be mounted on
+      file:
+        path: /mnt/iscsi_disk
+        state: directory
+    - lineinfile:
+        dest: /etc/fstab
+        line: "{{ uuid.stdout }} /mnt/iscsi_disk xfs _netdev 0 2"
+    - name: Mount your new iSCSI disk
+      command: mount -a
+    - file:
+        path: /mnt/iscsi_disk/myfile.txt
+        state: touch
+    - debug:
+        msg: "You Passed!!!!"
