@@ -1,0 +1,49 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "centos/7"
+
+  config.vm.define "host1" do |host1|
+    host1.vm.network :private_network, ip: "192.168.6.6"
+    host1.vm.hostname = 'host1'
+    host1.vm.provider :virtualbox do |v|
+      v.memory = 1024
+      v.cpus = 4
+    end
+
+    # Workaround for eth1 not starting on boot sometimes
+    host1.vm.provision "shell" do |s|
+      s.inline = "ifup eth1"
+    end
+    host1.vm.provision :ansible do |ansible|
+      ansible.playbook = "setup_host1.yaml"
+    end
+  end
+
+  config.vm.define "host2" do |host2|
+    host2.vm.network :private_network, ip: "192.168.6.66"
+    host2.vm.hostname = 'host2'
+    host2.vm.provider :virtualbox do |v|
+      v.memory = 1024
+      v.cpus = 4
+      ## Start: Add /dev/sdb at size 10GB
+      second_disk = `VBoxManage list systemproperties | grep "Default machine folder" | awk '{print $4}'`.strip
+      second_disk = second_disk + ' VMs/' + `basename $(dirname $(pwd))` + '/second_disk.vmdk'
+      unless File.exist?(second_disk)
+        v.customize ['createhd', '--format', 'VMDK', '--size', 10240, '--filename', second_disk]
+      end
+      v.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', second_disk]
+      ## END config of second disk
+    end
+    # Workaround for eth1 not starting on boot sometimes
+    host2.vm.provision "shell" do |s|
+      s.inline = "ifup eth1"
+    end
+    host2.vm.provision :ansible do |ansible|
+      ansible.playbook = "setup_host2.yaml"
+    end
+  end
+
+end

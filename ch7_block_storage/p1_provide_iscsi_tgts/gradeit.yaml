@@ -16,16 +16,22 @@
       local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
       become: false
     - yum: name=iscsi-initiator-utils state=present
+    - service:
+        name: iscsi
+        state: started
+        enabled: yes
+    - service:
+        name: iscsid
+        state: started
+        enabled: yes
     # Needs backrefs=yes or it will not be idempotent - not sure why
     - lineinfile:
         dest: /etc/iscsi/initiatorname.iscsi
         regexp: "InitiatorName=iqn.1994-05.com.redhat:*"
         line: "InitiatorName=iqn.2017-01.com.example:host2" 
         backrefs: yes
-    - service:
-        name: iscsi
-        state: started
-        enabled: yes
+    # Have to restart iscsid for iqn rename to take affect
+    - command: "systemctl restart iscsid
     - service:
         name: firewalld
         state: started
@@ -43,10 +49,8 @@
       # I was getting mount usage error until moved from command: to shell:
       shell: "mount -l -t xfs | grep {{ iscsi_disk.stdout }}"
       register: ismounted
-    - debug: var=iscsi_disk
-    - debug: var=ismounted
     # Using -f (force) to make play idempotent, could also register var and use when:
-    # Also, it has to be after -t option
+    # It has to be after -t option
     - name: Create Filesystem
       command: "mkfs -t xfs -f /dev/{{ iscsi_disk.stdout }}"
       when: iscsi_disk.stdout not in ismounted.stdout

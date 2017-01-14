@@ -1,0 +1,43 @@
+---
+- hosts: host2
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - yum:
+        name: targetcli
+        state: present
+    - service:
+        name: target
+        state: started
+        enabled: yes
+    - name: Setup firewall to allow iscsi protocol
+      command: firewall-cmd --permanent --add-port=3260/tcp
+    - command: firewall-cmd --reload
+    - name: Set sdb as a lvm phys vol and create Vol Grp ISCSI_vg
+      lvg: vg=ISCSI_vg state=present pvs=/dev/sdb
+    - name: Create a logical volume with 100% of ISCSI_vg vol grp
+      lvol: vg=ISCSI_vg lv=disk1_iscsi_lv size=100%FREE 
+    - name: Create block disk for iscsi
+      command: targetcli /backstores/block/ create host2.disk1 /dev/ISCSI_vg/disk1_iscsi_lv
+    - name: Create IQN for host2
+      command: targetcli /iscsi/ create iqn.2017-01.com.example:host2
+    # Set in directions to use this iqn on host1
+    - name: Add host1 IQN to ACL for host2
+      command: targetcli /iscsi/iqn.2017-01.com.example:host2/tpg1/acls create iqn.2017-01.com.example:host1
+    - name: Create lun using host2.disk1 on host2
+      command: targetcli /iscsi/iqn.2017-01.com.example:host2/tpg1/luns create /backstores/block/host2.disk1
+    - name: Create portal to access iscsi disk
+      command: targetcli /iscsi/iqn.2017-01.com.example:host2/tpg1/portals create
+      # This fails even though it succeeds
+      ignore_errors: yes
+    - name: Save targetcli config
+      command: targetcli saveconfig
