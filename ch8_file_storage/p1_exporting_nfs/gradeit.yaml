@@ -1,0 +1,44 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    #- name: Restart server
+    #  command: /sbin/shutdown -r 1
+    #  async: 0
+    #  poll: 0
+    #- name: Wait for server to reboot
+    #  local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+    #  become: false
+    - name: Create mount point for nfs
+      file:
+        path: /mnt/nfsshare
+        state: directory
+      when: ansible_hostname == "host2"
+    - name: Mount nfsshare
+      mount:
+        name: /mnt/nfsshare
+        src: 192.168.6.6:/nfsshare
+        fstype: nfs
+        state: present
+      when: ansible_hostname == "host2"
+    - name: Create file on nfsshare
+      file:
+        path: /mnt/nfsshare/gradeit.txt
+        state: touch
+      when: ansible_hostname == "host2"
+    - name: Check for gradeit.txt on host1 now
+      stat:
+        path: /nfsshare/gradeit.txt
+      register: st
+    - fail:
+        msg: "Expected /nfsshare/gradeit.txt on host1, got {{ st }}"
+      when: ansible_hostname == "host1" and st.stat.exists == false
+    - debug:
+        msg: "You Passed!!!!"
+      when: ansible_hostname == "host2"

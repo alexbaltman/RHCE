@@ -1,0 +1,30 @@
+---
+- hosts: host1
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - find: path=/etc/yum.repos.d
+      register: myfiles
+    - file: 
+        state: absent 
+        path: "{{ item.path }}"
+      with_items: "{{ myfiles.files }}"
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          Setup host1 to exort nfs share
+          1. Setup an NFS share called /nfsshare
+          2. Export it to host2 as readable and writeable
+          4. Test it
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd
