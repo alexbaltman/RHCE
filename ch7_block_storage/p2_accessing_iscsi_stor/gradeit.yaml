@@ -1,5 +1,5 @@
 ---
-- hosts: host2
+- hosts: all
   become: yes
   become_method: sudo
   tasks:
@@ -8,18 +8,38 @@
         that:
           - ansible_version.major == 2
         enabled: yes
-    ### Setup sendmail as SMTP/MSA server
-    - yum: name=sendmail state=present
-    - lineinfile:
-        dest: 
-        regexp: 
-        line: 
-    - service:
-        name: 
-        state: 
-        enabled: 
-    - service:
-        name: firewalld
-        state: started
-        enabled: yes
-
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - name: Check for iscsi-initiator-utils
+      command: "rpm -qa | grep iscsi-initiator-utils"
+      register: initiator_utils
+    - fail:
+        msg: "Expected iscsi-initiator-utils, got: {{ initiator_utils }}"
+      when: iscsi-initiator-utils != initiator_utils.stdout
+    - name: Check initiator name for host1
+      command: cat /etc/iscsi/initiatorname.iscsi
+      register: initiator_name
+    - fail:
+        msg: "Expected InitiatorName=iqn.2017-01.com.example:host1, got {{ initiator_name }}"
+      when: "'InitiatorName=iqn.2017-01.com.example:host1' != initiator_name.stdout"
+    - name: Check for attached disk
+      command: "iscsiadm -m session -P3 | grep 'Attached scsi disk sd' | awk '{print $4}'"
+      register: iscsi_disk
+    - name: Get filesystem type for the attached scsi disk
+      shell: "mount -l -t xfs | grep {{ iscsi_disk.stdout }}"
+      register: isxfs
+    - fail:
+        msg: "Expected attached scsi disk to be of type xfs, got {{ isxfs }}"
+      when: xfs not in isxfs.stdout
+    - name: Make a file on the XFS filesystem on the scsi disk
+      file:
+        path: /mnt/iscsi_disk/gradeit.txt
+        state: touch
+    - debug:
+        msg: "You Passed!!!!"
+      when: ansible_hostname == host1

@@ -22,6 +22,8 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1. Setup host2 to access host1 storage (192.168.6.66) with IQN of iqn.2017-01.com.example:host1
+          1. Setup host1 to access host2 storage (192.168.6.66) with IQN of iqn.2017-01.com.example:host1
+          2. Make an xfs filesystem on the disk
+          3. Mount the new filesystem under /mnt/iscsi_disk
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
