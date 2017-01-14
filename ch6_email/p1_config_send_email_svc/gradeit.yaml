@@ -7,13 +7,13 @@
       assert:
         that:
           - ansible_version.major == 2
-    #- name: Restart server
-    #  command: /sbin/shutdown -r 1
-    #  async: 0
-    #  poll: 0
-    #- name: Wait for server to reboot
-    #  local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
-    #  become: false
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
     - name: Send email from host1 to host2 (192.168.6.66)
       shell: 'echo "Subject: test this broh" | /usr/lib/sendmail -v vagrant@example.com'
       #shell: 'echo "blahblah PII" | mail -s "host1 null client" vagrant@example.com null client test'
