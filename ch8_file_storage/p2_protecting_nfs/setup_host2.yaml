@@ -1,0 +1,173 @@
+---
+- hosts: host2
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - command: "sed -i 's/127.0.0.1.*host2.*host2/192.168.6.66 host2.example.com host2/g' /etc/hosts" 
+    - lineinfile:
+        dest: /etc/hosts
+        line: "192.168.6.6 host1.example.com host1"
+    - yum: state=present name={{ item }}
+      with_items:
+        - krb5-server
+        - krb5-workstation
+        - pam_krb5
+    - file:
+        path: /var/kerberos/krb5kdc/kdc.conf
+        state: absent
+    - file:
+        path: /var/kerberos/krb5kdc/kdc.conf
+        state: touch
+    - blockinfile:
+        dest: /var/kerberos/krb5kdc/kdc.conf
+        block: | 
+          [kdcdefaults]
+          kdc_ports = 88
+          kdc_tcp_ports = 88
+
+          [realms]
+            EXAMPLE.COM = {
+              acl_file = /var/kerberos/krb5kdc/kadm5.acl
+              dict_file = /usr/share/dict/words
+              admin_keytab = /var/kerberos/krb5kdc/kadm5.keytab
+              supported_enctypes = aes256-cts:normal aes128-cts:normal des3-hmac-sha1:normal arcfour-hmac:normal camellia256-cts:normal camellia128-cts:normal des-hmac-sha1:normal des-cbc-md5:normal des-cbc-crc:normal
+            }
+          [domain_realm]
+            .example.com = EXAMPLE.COM
+            example.com = EXAMPLE.COM
+    - lineinfile:
+        dest: /etc/krb5.conf
+        line: "# Configuration snippets may be placed in this directory as well"
+        state: absent
+    - name: Uncomment all lines in /etc/krb5.conf
+      command: "sed -i 's/#//g' /etc/krb5.conf" 
+    - lineinfile:
+        dest: /etc/krb5.conf
+        regexp: "  kdc = kerberos.example.com"
+        line: "  kdc = host2.example.com"
+    - lineinfile:
+        dest: /etc/krb5.conf
+        regexp: "  admin_server = kerberos.example.com"
+        line: "  admin_server = host2.example.com"
+    # Normally, would need to change domains in this file too
+    # /var/kerberos/krb5kdc/kadm5.acl when not using example.com
+    - name: Need to inc hw entropy. Can use haveged. Get tar.
+      get_url:
+        url: http://www.issihosts.com/haveged/haveged-1.9.1.tar.gz
+        dest: /root
+    - yum:
+        name: gcc-c++.x86_64
+        state: present
+    - name: Create loc for untar of haveged
+      file:
+        path: /root/haveged-1.9.1
+        state: directory
+    - unarchive:
+        src: /root/haveged-1.9.1.tar.gz
+        dest: /root/
+        copy: no
+    - name: Config haveged build
+      command: "./configure"
+      args:
+        chdir: /root/haveged-1.9.1
+    - name: Build haveged
+      command: make
+      args:
+        chdir: /root/haveged-1.9.1
+    - name: Install haveged
+      command: make install
+      args:
+        chdir: /root/haveged-1.9.1
+    - name: Start haveged daemon for increasing entropy 
+      command: /usr/local/sbin/haveged -w 1024
+    # /proc/sys/kernel/random/entropy_avail. want this number to be 2000-3000.
+    - name: Add kerberos to FW
+      command: firewall-cmd --permanent --add-service=kerberos
+    # Not sure if this is 100% necessary. kadmin port: 
+    - name: Add kadmin to FW
+      command: firewall-cmd --permanent --add-port=749/tcp
+    - name: Reload FW
+      command: firewall-cmd --reload
+    ## START KERBEROS CONFIG
+    - name: Use Entropy to create Kerberos DB
+      shell: "echo 'example\nexample' | kdb5_util create -s -r EXAMPLE.COM"
+    - name: Start Kerberos
+      service:
+        name: krb5kdc 
+        state: started
+        enabled: yes
+    - name: Start Kerberos admin svc
+      service:
+        name: kadmin
+        state: started
+        enabled: yes
+    - shell: "echo 'addprinc -pw kerberos root/admin' | kadmin.local"
+    - shell: "echo 'addprinc -randkey host/host1.example.com' | kadmin.local"
+    - shell: "echo 'addprinc -randkey host/host2.example.com' | kadmin.local"
+    - name: Add two hosts to the keytab
+      shell: "echo 'ktadd host/host1.example.com\nktadd host/host2.example.com\nquit' | kadmin.local"
+    - shell: "echo 'addprinc -randkey nfs/host1.example.com' | kadmin.local"
+    - shell: "echo 'addprinc -randkey nfs/host2.example.com' | kadmin.local"
+    - shell: "echo 'ktadd nfs/host1.example.com\nquit' | kadmin.local"
+    - shell: "echo 'ktadd nfs/host2.example.com\nquit' | kadmin.local"
+    - shell: "echo 'kerberos' | kinit root/admin"
+    ### END KERBEROS CONFIG
+    - name: Edit ssh_config for GSS authentication
+      lineinfile:
+        dest: /etc/ssh/ssh_config
+        regexp: '#   GSSAPIAuthentication no'
+        line: '    GSSAPIAuthentication yes'
+    - name: Edit ssh_config for GSS delegate creds
+      lineinfile:
+        dest: /etc/ssh/ssh_config
+        regexp: '#   GSSAPIDelegateCredentials no'
+        line: '    GSSAPIDelegateCredentials yes'
+    - service:
+        name: sshd
+        state: restarted
+    - command: authconfig --enablekrb5 --update
+    - name: Create user - user01
+      user:
+        name: user01
+        state: present
+    - name: Set user01 pass
+      command: "echo 'user01' | passwd user01 --stdin"
+    - name: Install httpd
+      yum:
+        name: httpd
+        state: present
+    - name: Start httpd
+      service:
+        name: httpd
+        state: started
+    - name: Add http to FW
+      command: firewall-cmd --permanent --add-service=http
+    - command: firewall-cmd --reload
+    - name: Move krb5.keytab into place for http
+      copy: 
+        src: /etc/krb5.keytab
+        dest: /var/www/html/
+        owner: apache
+        group: apache
+        remote_src: True
+    - name: Move krb5.conf into place for http
+      copy: 
+        src: /etc/krb5.conf
+        dest: /var/www/html/
+        owner: apache
+        group: apache
+        remote_src: True
+
+# Reference1: https://www.certdepot.net/rhel7-configure-kerberos-kdc/
+# Reference2: http://championofcyrodiil.blogspot.com/2014/01/increasing-entropy-in-vm-for-kerberos.html
+# Reference3: http://www.tecmint.com/setting-up-nfs-server-with-kerberos-based-authentication/
+# Reference4: https://www.lisenet.com/2016/kerberised-nfs-server-on-rhel-7/
