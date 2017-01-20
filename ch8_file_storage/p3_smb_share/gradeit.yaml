@@ -1,0 +1,106 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - yum:
+        name: cifs-utils
+        state: present
+      when: ansible_hostname == "host2"
+    - file:
+        path: /mnt/brian
+        state: directory
+      when: ansible_hostname == "host2"
+    - file:
+        path: /.smbcreds_brian
+        state: touch
+      when: ansible_hostname == "host2"
+    - lineinfile: 
+        dest: /.smbcreds_brian
+        line: "username=brian"
+      when: ansible_hostname == "host2"
+    - lineinfile: 
+        dest: /.smbcreds_brian
+        line: "password=redhat"
+      when: ansible_hostname == "host2"
+    - mount:
+        name: /mnt/brian
+        src: //192.168.6.6/smbshare
+        fstype: cifs
+        opts: credentials=/.smbcreds_brian
+        state: present
+      when: ansible_hostname == "host2"
+    - command: mount -a
+      when: ansible_hostname == "host2"
+    - shell: 'mount | grep -E "brian" | wc -l'
+      register: mymounts
+    - fail:
+        msg: "Expected 1 mount, got {{ mymounts }}"
+      when: ansible_hostname == "host2" and mymounts.stdout != "1"
+    - file:
+        path: /mnt/brian/brian.txt
+        state: touch
+      when: ansible_hostname == "host2"
+    - shell: 'echo "Hello World" >> /mnt/brian/brian.txt'
+      when: ansible_hostname == "host2"
+    - file:
+        path: /.smbcreds_rob
+        state: touch
+      when: ansible_hostname == "host2"
+    - lineinfile: 
+        dest: /.smbcreds_rob
+        line: "username=rob"
+      when: ansible_hostname == "host2"
+    - lineinfile: 
+        dest: /.smbcreds_rob
+        line: "password=redhat"
+      when: ansible_hostname == "host2"
+    - mount:
+        name: /mnt/rob
+        src: //192.168.6.6/smbshare
+        fstype: cifs
+        opts: credentials=/.smbcreds_rob
+        state: present
+      when: ansible_hostname == "host2"
+    - command: mount -a
+      when: ansible_hostname == "host2"
+    - shell: 'mount | grep -E "rob|brian" | wc -l'
+      register: mymounts
+    - fail:
+        msg: "Expected 2 mounts, got {{ mymounts }}"
+      when: ansible_hostname == "host2" and mymounts.stdout != "2"
+    - file:
+        path: /mnt/rob
+        state: directory
+      when: ansible_hostname == "host2"
+    # Expected that user cannot create rob.txt file
+    - file:
+        path: /mnt/rob/rob.txt
+        state: touch
+      ignore_errors: yes
+      when: ansible_hostname == "host2"
+    - stat:
+        path: /mnt/rob/rob.txt
+      register: st
+      when: ansible_hostname == "host2"
+    - fail:
+        msg: "Expected no file at /mnt/rob/rob.txt, but found one. User rob should not have write perms to share smbshare b/c he is not part of the Marketing group."
+      when: ansible_hostname == "host2" and st.stat.exists == true
+    - name: Testing read access on mnt rob file brian.txt
+      command: cat /mnt/rob/brian.txt
+      when: ansible_hostname == "host2"
+    - debug:
+        msg: "You Passed!!!!"
+      when: ansible_hostname == "host2"
