@@ -22,7 +22,6 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          Setup host1 to exort nfs share
           1. Create and share via samba /smbshare
           2. Create and give perms to user grp Marketing 
           3. Non-marketing grps have read perms
