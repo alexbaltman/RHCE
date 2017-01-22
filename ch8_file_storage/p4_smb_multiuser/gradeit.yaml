@@ -1,0 +1,58 @@
+---
+- hosts: host1
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - shell: "mount | grep multiuser | wc -l"
+      register: ismount
+      failed_when: ismount.stdout != "1"
+    # Expect to fail
+    - name: Try and create rob.txt on /mnt/multiuser. Expect failure.
+      file:
+        path: /mnt/multiuser/rob.txt
+        state: touch
+      ignore_errors: true
+    - name: Check if /mnt/multiuser/rob.txt exists
+      stat:
+        path: /mnt/multiuser/rob.txt
+      register: st
+    - name: Fail if /mnt/multiuser/rob.txt exists
+      fail:
+        msg: "Expected /mnt/multiuser/rob.txt not to be there, but was so perms must be wrong"
+      when: st.stat.exists == true
+    - name: Prepare to escalate smb creds to Brian from Rob
+      command: umount /mnt/multiuser
+    - name: Swap Brian and Rob
+      command: "sed -i 's/username=rob/username=brian/g' /.smbcreds_multiuser"
+    - name: Remount /mnt/multiuser w/ Brian
+      command: mount /mnt/multiuser
+    - name: Create file /mnt/multiuser/brian.txt
+      file: 
+        path: /mnt/multiuser/brian.txt
+        state: touch
+    - name: Add BlahBlah to /mnt/multiuser/brian.txt
+      lineinfile:
+        dest: /mnt/multiuser/brian.txt
+        line: "BlahBlah"
+    - name: Prepare to de-escalate creds from Brian to Rob
+      command: umount /mnt/multiuser
+    - name: Swap Brian and Rob
+      command: "sed -i 's/username=brian/username=rob/g' /.smbcreds_multiuser"
+    - name: Remount as Rob
+      command: mount /mnt/multiuser
+    - name: Test if Rob still has read access to /mnt/multiuser/brian.txt
+      command: cat /mnt/multiuser/brian.txt
+    - debug:
+        msg: "You Passed!!!!"

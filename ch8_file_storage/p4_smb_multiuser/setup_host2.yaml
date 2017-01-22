@@ -1,0 +1,65 @@
+---
+- hosts: host2
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - yum: pkg={{item}} state=installed
+      with_items:
+       - samba
+       - samba-client
+       - policycoreutils-python
+    - group:
+        name: marketing
+        state: present
+    - file:
+        path: /smbshare
+        state: directory
+        group: marketing
+        mode: 2775
+    - shell: semanage fcontext -a -t samba_share_t '/smbshare(/.*)?'
+    - shell: restorecon -vvFR /smbshare
+    - lineinfile:
+        dest: /etc/samba/smb.conf
+        regexp: '\tworkgroup = SAMBA'
+        line: '        workgroup = mycompany'
+    - lineinfile:
+        dest: /etc/samba/smb.conf
+        line: '[smbshare]'
+    # Not sure how to do tabs w/ lineinfile and samba requires it
+    - shell: echo -e '\tpath= /smbshare' >>/etc/samba/smb.conf
+    - shell: echo -e '\twrite list = @marketing' >>/etc/samba/smb.conf
+    - user:
+        name: brian
+        shell: /sbin/nologin
+        groups: marketing
+        state: present
+    - shell: '(echo "redhat"; echo "redhat") | smbpasswd -s -a brian'
+    - user:
+        name: rob
+        shell: /sbin/nologin
+        state: present
+        groups:
+    - shell: '(echo "redhat"; echo "redhat") | smbpasswd -s -a rob'
+    - service:
+        name: smb
+        state: started
+        enabled: yes
+    - service:
+        name: nmb
+        state: started
+        enabled: yes
+    - command: firewall-cmd --permanent --add-service=samba
+    - command: firewall-cmd --reload
+
+# View samba shares:   smbclient -L localhost -U rob 
+# View samba users:    pbedit -L
+# View selinux alerts: sealert -a /var/log/audit/audit.log
