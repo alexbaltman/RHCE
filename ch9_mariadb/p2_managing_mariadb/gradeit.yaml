@@ -1,0 +1,50 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    #- name: Restart server
+    #  command: /sbin/shutdown -r 1
+    #  async: 0
+    #  poll: 0
+    #- name: Wait for server to reboot
+    #  local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+    #  become: false
+    - name: john, check select privs to inventory
+      shell: "mysql -u john --password=john_password -e 'use inventory; SELECT * FROM inventory'" 
+      when: ansible_hostname == "host1"
+    - name: john, check insert privs to inventory
+      shell: mysql -u john --password=john_password -e "use inventory; INSERT into inventory (Name) VALUES ('Racks');" 
+      when: ansible_hostname == "host1"
+    - name: john, check update privs to inventory
+      shell: mysql -u john --password=john_password -e "use inventory; UPDATE inventory SET Name='MyBrand_of_Racks' where id=4;" 
+      when: ansible_hostname == "host1"
+    - name: john, check delete privs to inventory
+      shell: mysql -u john --password=john_password -e "use inventory; DELETE FROM inventory WHERE Name LIKE 'MyBrand_of_Racks';" 
+      when: ansible_hostname == "host1"
+    - name: john, check no remote access to mysql on host1 from host2
+      command: mysql -u john --password=john_password -h 192.168.6.6
+      register: has_access
+      when: ansible_hostname == "host2"
+      ignore_errors: yes
+    - fail:
+        msg: "Expected Access denied, got {{ has_access }}"
+      when: "ansible_hostname == 'host2' and 'Access denied' not in has_access.stderr"
+    - name: steve, check select privs to inventory from host2 to host1
+      shell: mysql -u steve --password=steve_password -e "use inventory; SELECT * FROM inventory" -h 192.168.6.6
+      when: ansible_hostname == "host2"
+    - name: steve, check insert privs to inventory are DENIED from host2 to host1
+      shell: mysql -u steve --password=steve_password -e "use inventory; INSERT into inventory (Name) VALUES ('Racks');" -h 192.168.6.6
+      ignore_errors: yes
+      register: isrootpass_req
+      when: ansible_hostname == "host2"
+    - fail:
+        msg: "Expected Access denied, got {{ isrootpass_req }}"
+      when: "ansible_hostname == 'host2' and 'INSERT command denied' not in isrootpass_req.stderr"
+    - debug:
+        msg: "You Passed!!!!"
