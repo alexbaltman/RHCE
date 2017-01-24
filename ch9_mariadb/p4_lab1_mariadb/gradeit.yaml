@@ -1,0 +1,118 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    #- name: Restart server
+    #  command: /sbin/shutdown -r 1
+    #  async: 0
+    #  poll: 0
+    #- name: Wait for server to reboot
+    #  local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+    #  become: false
+    - name: Create repo file
+      file:
+        state: touch
+        path: /etc/yum.repos.d/myrepo.repo
+    - name: Setup repo
+      blockinfile:
+        dest: /etc/yum.repos.d/myrepo.repo
+        block: |
+          [myrepo]
+          gpgcheck=0
+          enabled=1
+          baseurl=http://mirror.centos.org/centos/7/os/x86_64
+    - yum:
+        name: '{{ item }}'
+        state: present
+      with_items:
+        - '@mariadb-client'
+        - MySQL-python 
+    ## User: Mary
+    - name: user mary, check select privs to manufacturer
+      shell: "mysql -u mary --password=mary_password -e 'use legacy; SELECT * FROM manufacturer'" 
+    - name: user mary, check NO insert privs to manufacturer
+      shell: mysql -u mary --password=mary_password -e "use legacy; INSERT into manufacturer (name,seller,phone_number) VALUES ('EMC','Joey Tucci','+1 (495) 395-0192');" 
+      register: insert_access
+      ignore_errors: yes
+    - fail:
+        msg: "Expected Access denied, got {{ insert_access }}"
+      when: "'INSERT command denied' not in insert_access.stderr"
+    - name: user mary, check update privs to manufacturer
+      shell: mysql -u mary --password=mary_password -e "use legacy; UPDATE manufacturer SET phone_numer='+1 (476) 591-8435' where id=4;" 
+      register: update_access
+      ignore_errors: yes
+    - fail:
+        msg: "Expected Access denied, got {{ update_access }}"
+      when: "'UPDATE command denied' not in update_access.stderr"
+    - name: user mary, check delete privs to manufacturer
+      shell: mysql -u mary --password=mary_password -e "use legacy; DELETE FROM manufacturer WHERE name LIKE 'EMC';" 
+      register: del_access
+      ignore_errors: yes
+    - fail:
+        msg: "Expected Access denied, got {{ del_access }}"
+      when: "'DELETE command denied' not in del_access.stderr"
+    ## User: report
+    - name: user report, check select privs to manufacturer
+      shell: "mysql -u report --password=report_password -e 'use legacy; SELECT * FROM manufacturer;'" 
+    - name: user report, check NO insert privs to manufacturer
+      shell: mysql -u report --password=report_password -e "use legacy; INSERT into manufacturer (name,seller,phone_number) VALUES ('EMC','Joey Tucci','+1 (495) 395-0192');" 
+      register: insert_access
+      ignore_errors: yes
+    - fail:
+        msg: "Expected Access denied, got {{ insert_access }}"
+      when: "'INSERT command denied' not in insert_access.stderr"
+    - name: user report, check update privs to manufacturer
+      shell: mysql -u report --password=report_password -e "use legacy; UPDATE manufacturer SET phone_numer='+1 (476) 591-8435' where id=4;" 
+      register: update_access
+      ignore_errors: yes
+    - fail:
+        msg: "Expected Access denied, got {{ update_access }}"
+      when: "'UPDATE command denied' not in update_access.stderr"
+    - name: user report, check delete privs to manufacturer
+      shell: mysql -u report --password=report_password -e "use legacy; DELETE FROM manufacturer WHERE name LIKE 'EMC';" 
+      register: del_access
+      ignore_errors: yes
+    - fail:
+        msg: "Expected Access denied, got {{ del_access }}"
+      when: "'DELETE command denied' not in del_access.stderr"
+    ## User: Legacy
+    - name: user legacy, check select privs to manufacturer
+      shell: "mysql -u legacy --password=legacy_password -e 'use legacy; SELECT * FROM manufacturer;'" 
+      register: mfg_data
+    - name: user legacy, check insert privs to manufacturer
+      shell: mysql -u legacy --password=legacy_password -e "use legacy; INSERT into manufacturer (name,seller,phone_number) VALUES ('EMC','Joey Tucci','+1 (495) 395-0192');" 
+    - name: user legacy, check update privs to manufacturer
+      shell: mysql -u legacy --password=legacy_password -e "use legacy; UPDATE manufacturer SET phone_number='+1 (476) 591-8435' where id=4;" 
+    - name: user legacy, check delete privs to manufacturer
+      shell: mysql -u legacy --password=legacy_password -e "use legacy; DELETE FROM manufacturer WHERE name LIKE 'EMC';" 
+    - name: user report, check select privs to manufacturer
+      shell: "mysql -u report --password=report_password -e 'use legacy; SELECT * FROM manufacturer;'" 
+    ## HP
+    - fail:     
+        msg: "Expected (name=HP, seller=Joe Doe, phone_number=+1 (432) 754-3509), got {{ mfg_data }}"
+      when:
+        - "'HP' not in mfg_data.stdout"
+        - "'Joe Doe' not in mfg_data.stdout"
+        - "'+1 (432) 754-3509' not in mfg_data.stdout"
+    ## DELL
+    - fail:     
+        msg: "Expected (name=DELL, seller=Luke Skywalker, phone_number=+1 (431) 219-4589), got {{ mfg_data }}"
+      when:
+        - "'DELL' not in mfg_data.stdout"
+        - "'Luke Skywalker' not in mfg_data.stdout"
+        - "'+1 (431) 219-4589' not in mfg_data.stdout"
+    ## Lenovo
+    - fail:     
+        msg: "Expected (name=Lenovo, seller=Darth Vader, phone_number=+1 (327) 647-6784), got {{ mfg_data }}"
+      when:
+        - "'Lenovo' not in mfg_data.stdout"
+        - "'Darth Vader' not in mfg_data.stdout"
+        - "'+1 (327) 647-6784' not in mfg_data.stdout"
+    - debug:
+        msg: "You Passed!!!!"

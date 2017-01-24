@@ -1,0 +1,33 @@
+---
+- hosts: host1
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - find: path=/etc/yum.repos.d
+      register: myfiles
+    - file: 
+        state: absent 
+        path: "{{ item.path }}"
+      with_items: "{{ myfiles.files }}"
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. Restore Legacy DB from /root/mariadb.dump
+          2. Create user mary, pass=mary_password, privs: select on all tables in legacy db
+          3. Create user legacy, pass=legacy_password, privs: select, insert, update, delete on all tables in legacy db
+          4. Create user report, pass=report_password, privs: select on all tables in legacy db
+          5. Add (name=HP, seller=Joe Doe, phone_number=+1 (432) 754-3509) to table manufacturer in the legacy db
+          6. Add (name=DELL, seller=Luke Skywalker, phone_number=+1 (431) 219-4589) to table manufacturer in the legacy db
+          7. Add (name=Lenovo, seller=Darth Vader, phone_number=+1 (327) 647-6784) to table manufacturer in the legacy db
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd
