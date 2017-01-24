@@ -1,0 +1,30 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - command: 'curl http://192.168.6.6/'
+      register: web_content
+    - fail:
+        msg: "Expected 'Hello Dawg!', got {{ web_content }}"
+      when: "'Hello Dawg!' != web_content.stdout"
+    - command: 'grep ServerAdmin /etc/httpd/conf/httpd.conf'
+      register: serveradmin
+    # Test is a bit brittle, but avoids catching the commented out directions for ServerAdmin in httpd.conf
+    - fail:
+        msg: "Expected 'ServerAdmin webmaster@host1.example.com', got {{ serveradmin }}'"
+      when: "'ServerAdmin webmaster@host1.example.com' not in serveradmin.stdout_lines[1]"
+    - debug:
+        msg: "You Passed!!!!"
