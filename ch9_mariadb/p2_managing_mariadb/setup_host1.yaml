@@ -40,8 +40,8 @@
         block: |
           1. Create users john (pass=john_password) and steve (steve_password)
           2. john can connect only from localhost and steve from any host
-          2. Grant insert, update, delete, and select privs on inventory db to user john
-          3. Grant select privs on inventory db to Steve
-          4. Test it
+          3. Grant insert, update, delete, and select privs on inventory db to user john
+          4. Grant select privs on inventory db to Steve
+          5. Test it
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
