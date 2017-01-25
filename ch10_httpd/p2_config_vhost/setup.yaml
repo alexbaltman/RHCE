@@ -1,0 +1,34 @@
+---
+- hosts: host1
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - lineinfile:
+        dest: /etc/hosts
+        line: "192.168.6.6 wwwX.host1.com wwwX"
+    - find: path=/etc/yum.repos.d
+      register: myfiles
+    - file: 
+        state: absent 
+        path: "{{ item.path }}"
+      with_items: "{{ myfiles.files }}"
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. Setup, start, make persistent a webserver
+          2. Setup default vhost from /srv/default/www, logs to logs/default-vhost.log using combined format, and on port 80 from anywhere
+          3. Setup 2nd vhost called wwwX.host1.com from /srv/wwwX.host1.com/www
+          4. Make the default vhost content read "Coming Soon!"
+          5. Make the www.host1.com vhost content read "wwwX"
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd

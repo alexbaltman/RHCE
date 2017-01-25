@@ -1,0 +1,39 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - command: 'curl wwwX.host1.com'
+      register: wwwXhost1com
+    - fail:
+        msg: "Expected 'wwwX', got {{ wwwXhost1com }}"
+      when: "'wwwX' != wwwXhost1com.stdout"
+    - command: 'curl http://wwwX'
+      register: wwwX
+    - fail:
+        msg: "Expected 'wwwX', got {{ wwwX }}"
+      when: "'wwwX' != wwwX.stdout"
+    - command: 'curl http://192.168.6.6/'
+      register: content_by_ip
+    - fail:
+        msg: "Expected 'Coming Soon!', got {{ content_by_ip }}"
+      when: "'Coming Soon!' != content_by_ip.stdout"
+    - command: 'curl http://localhost/'
+      register: content_by_localhost
+    - fail:
+        msg: "Expected 'Coming Soon!', got {{ content_by_localhost }}"
+      when: "'Coming Soon!' != content_by_localhost.stdout"
+    - debug:
+        msg: "You Passed!!!!"
