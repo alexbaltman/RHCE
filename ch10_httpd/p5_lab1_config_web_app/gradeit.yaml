@@ -1,0 +1,30 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - command: 'curl -k https://webappX.host1.com'
+      register: webappX
+    - fail:
+        msg: "Expected 'Hello World!', got {{ webappX }}"
+      when: "'Hello World!' not in webappX.stdout"
+    - command: 'curl https://webappX.host1.com'
+      register: webappX_secure
+      ignore_errors: yes
+    - fail:
+        msg: "Expected 'certificate issuer has been marked as not trusted by the user', got {{ webappX_secure }}"
+      when: "'certificate issuer has been marked as not trusted by the user' not in webappX_secure.stderr"
+    - debug:
+        msg: "You Passed!!!!"
