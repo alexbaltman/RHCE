@@ -47,7 +47,7 @@
         dest: /etc/motd
         block: |
           1. Troubleshoot the http/php/mariadb web page
-          5. Fix any issues you find so it starts
-          6. Test it
+          2. Fix any issues you find so it starts
+          3. Test it
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
