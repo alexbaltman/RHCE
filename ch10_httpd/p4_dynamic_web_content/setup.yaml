@@ -1,0 +1,53 @@
+---
+- hosts: host1
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - service:
+        name: firewalld
+        state: started
+        enabled: yes
+    - yum: name={{ item }} state=present
+      with_items:
+        - httpd
+        - mariadb-server
+    - service:
+        name: mariadb
+        state: started
+        enabled: yes
+    - name: Update root password
+      command: "mysqladmin password 'root'"
+    - file:
+        name: /var/www/html/index.php
+        state: touch
+    - name:
+      blockinfile:
+        dest: /var/www/html/index.php
+        block: |
+          <?php
+            $link = mysql_connect('localhost', 'root', 'root')
+              or die('Could not connect: ' . mysql_error());
+            //if connection is successfuly you will see message bellow
+            echo 'Connected successfully';
+            mysql_close($link);
+          ?>
+    - find: path=/etc/yum.repos.d
+      register: myfiles
+    - file: 
+        state: absent 
+        path: "{{ item.path }}"
+      with_items: "{{ myfiles.files }}"
+    - name: Set Practice Tasks
+      blockinfile:
+        dest: /etc/motd
+        block: |
+          1. Troubleshoot the http/php/mariadb web page
+          5. Fix any issues you find so it starts
+          6. Test it
+          Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
+          Note2: You can see this message in /etc/motd

@@ -1,0 +1,24 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      become: false
+    - command: 'curl localhost'
+      register: localhost_output
+    - fail:
+        msg: "Expected 'Connected successfully', got {{ localhost_output }}"
+      when: "'Connected successfully' not in localhost_output.stdout"
+    - debug:
+        msg: "You Passed!!!!"
