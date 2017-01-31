@@ -18,12 +18,8 @@
       fail:
         msg: "eth1 ipv6 addr == {{ ansible_eth1.ipv6[0].address }}, wanted fddb:fe2a:ab1e::c0a8:3"
       when: ansible_hostname == "host1" and ansible_eth1.ipv6[0].address != "fddb:fe2a:ab1e::c0a8:3"
-    - name: Fail if ipv6 addr is wrong on host2
-      fail:
-        msg: "eth1 ipv6 addr == {{ ansible_eth1.ipv6.address }}, wanted fddb:fe2a:ab1e::c0a8:2"
-      when: ansible_hostname == "host2" and ansible_eth1.ipv6.address != "fddb:fe2a:ab1e::c0a8:2"
     - name: Test ping6 from host1 to host2 on ipv6 int
-      command: ping6 -c 3 "fddb:fe2a:ab1e::c0a8:2"
+      command: ping6 -I eth1 -c 3 "fddb:fe2a:ab1e::c0a8:2"
       when: ansible_hostname == "host1"
     - debug:
         msg: "You Passed!!!!"
