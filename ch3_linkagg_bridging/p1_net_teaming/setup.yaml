@@ -17,7 +17,7 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1. Setup host1 eth1 and eth2 into a team bridge called team0 with an activebackup runner and an ip addr of 192.168.7.8 (using nmcli pref)
+          1. Setup host1 eth1 and eth2 into a team bridge called team0 with an activebackup runner and an ip addr of 192.168.7.8/24 (using nmcli pref)
           2. Check success by pinging 192.168.7.9 (host2) from the team int (can use ping -I). Make sure to check host2 eth1 is up JIC. 
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
