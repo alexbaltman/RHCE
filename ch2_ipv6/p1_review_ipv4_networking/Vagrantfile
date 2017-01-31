@@ -24,6 +24,10 @@ Vagrant.configure("2") do |config|
       v.memory = 1024
       v.cpus = 4
     end
+    # Workaround for eth1 not starting on boot sometimes
+    host2.vm.provision "shell" do |s|
+      s.inline = "ifup eth1"
+    end
   end
 
 end
