@@ -22,8 +22,9 @@
     - name: Check for rich rule settings
       fail:
         msg: 'Got: {{ richrules }}, expected: rule family="ipv4" source address="192.168.6.6" service name="http" log prefix="NEW HTTP " level="notice" limit value="3/s" accept'
-      when: 
-        - ansible_hostname == "host1"
+      when: ansible_hostname == "host1"
+      failed_when: "{{ item }}" 
+      with_items:
         - "'192.168.6.66' not in richrules.stdout"
         - "'http' not in richrules.stdout"
         - "'prefix' not in richrules.stdout"
