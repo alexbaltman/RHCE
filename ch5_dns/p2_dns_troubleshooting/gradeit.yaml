@@ -8,13 +8,7 @@
         that:
           - ansible_version.major == 2
         enabled: yes
-    - name: Restart server
-      command: /sbin/shutdown -r 1
-      async: 0
-      poll: 0
-    - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started port={{ ansible_ssh_port }}
-      become: false
+    # Note: do not want to reboot or you will solve prob for user as dhcp grabs new resolv.conf details
     - name: "Test host1 resolv google.com"
       command: dig @192.168.6.6 A google.com
     - debug:

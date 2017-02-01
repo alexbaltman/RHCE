@@ -38,10 +38,10 @@
         state: touch
     - lineinfile:
         dest: /etc/resolv.conf
-        line: 'search example.com'
+        line: 'search'
     - lineinfile:
         dest: /etc/resolv.conf
-        line: 'nameserver 10.10.10.10'
+        line: 'nameserver 0.0.0'
     - find: path=/etc/yum.repos.d
       register: myfiles
     - file: 
