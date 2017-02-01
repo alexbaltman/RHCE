@@ -12,7 +12,7 @@
       async: 0
       poll: 0
     - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300 port={{ ansible_ssh_port }}
       become: false
        Could register this in less brittle fashion - what if there were 2 rules?
     - name: Register rich rule (should be just one)
@@ -22,12 +22,13 @@
     - name: Check for rich rule settings
       fail:
         msg: 'Got: {{ richrules }}, expected these values: 192.168.6.66, to-port=22, 443, and forward-port'
-      when: 
-        - ansible_hostname == "host1"
+      when: ansible_hostname == "host1"
+      failed_when: "{{ item }}"
+      with_items:
         - "'192.168.6.66' not in richrules.stdout"
         - "'forward-port' not in richrules.stdout"
         - "'443' not in richrules.stdout"
-        - "'to-port=22' not in richrules.stdout"
+        - "'to-port=\"22\"' not in richrules.stdout"
     # Expect to fail on Perm denied
     # No route to host means fw is not fwding, but Perm denied means fwding
     - name: "Test host1 (eth1: 192.168.6.6) ssh con from host2 (eth1: 192.168.6.66)"
