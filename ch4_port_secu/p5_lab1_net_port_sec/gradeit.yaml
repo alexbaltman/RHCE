@@ -23,8 +23,9 @@
     - name: Check for firewall rules
       fail:
         msg: 'Got: {{ workzonerules }}, expected these values: 192.168.6.66, and 999'
-      when: 
-        - ansible_hostname == "host1"
+      when: ansible_hostname == "host1"
+      failed_when: "{{ item }}"
+      with_items:
         - "'192.168.6.66' not in workzonerules.stdout"
         - "'999' not in workzonerules.stdout"
     # Expect to fail on Perm denied

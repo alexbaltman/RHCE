@@ -23,9 +23,8 @@
     - name: Check for public/default zone settings
       fail:
         msg: 'Got: {{ pubzone }}, expected: dns in services for the public/default zone'
-      when: 
-        - ansible_hostname == "host1"
-        - "'dns' not in pubzone.stdout"
+      when: ansible_hostname == "host1"
+      failed_when: "'dns' not in pubzone.stdout"
     - name: Create repo file
       file:
         state: touch

@@ -96,21 +96,24 @@
     ## HP
     - fail:     
         msg: "Expected (name=HP, seller=Joe Doe, phone_number=+1 (432) 754-3509), got {{ mfg_data }}"
-      when:
+      failed_when: "{{ item }}"
+      with_items:
         - "'HP' not in mfg_data.stdout"
         - "'Joe Doe' not in mfg_data.stdout"
         - "'+1 (432) 754-3509' not in mfg_data.stdout"
     ## DELL
     - fail:     
         msg: "Expected (name=DELL, seller=Luke Skywalker, phone_number=+1 (431) 219-4589), got {{ mfg_data }}"
-      when:
+      failed_when: "{{ item }}"
+      with_items:
         - "'DELL' not in mfg_data.stdout"
         - "'Luke Skywalker' not in mfg_data.stdout"
         - "'+1 (431) 219-4589' not in mfg_data.stdout"
     ## Lenovo
     - fail:     
         msg: "Expected (name=Lenovo, seller=Darth Vader, phone_number=+1 (327) 647-6784), got {{ mfg_data }}"
-      when:
+      failed_when: "{{ item }}"
+      with_items:
         - "'Lenovo' not in mfg_data.stdout"
         - "'Darth Vader' not in mfg_data.stdout"
         - "'+1 (327) 647-6784' not in mfg_data.stdout"
