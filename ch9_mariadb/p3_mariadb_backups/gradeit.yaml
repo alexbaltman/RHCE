@@ -8,13 +8,13 @@
         that:
           - ansible_version.major == 2
         enabled: yes
-    #- name: Restart server
-    #  command: /sbin/shutdown -r 1
-    #  async: 0
-    #  poll: 0
-    #- name: Wait for server to reboot
-    #  local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300
-    #  become: false
+    - name: Restart server
+      command: /sbin/shutdown -r 1
+      async: 0
+      poll: 0
+    - name: Wait for server to reboot
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300 port={{ ansible_ssh_port }}
+      become: false
     - name: root, check select privs to inventory
       shell: "mysql -u root -e 'use inventory; SELECT * FROM inventory'" 
     - name: root, check insert privs to inventory
