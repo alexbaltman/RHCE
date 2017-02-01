@@ -13,7 +13,7 @@
       async: 0
       poll: 0
     - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=10 timeout=300 port={{ ansible_ssh_port }}
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300 port={{ ansible_ssh_port }}
       become: false
        #Could register this in less brittle fashion - what if there were 2 rules?
     - name: Register work zone rules 
