@@ -35,7 +35,7 @@
       command: "ssh -tt -o StrictHostKeyChecking=no -p 999 192.168.6.6"
       when: ansible_hostname == "host2"
       register: issshfwded
-      failed_when: issshfwded.stderr != "Permission denied (publickey,gssapi-keyex,gssapi-with-mic)."
+      failed_when: "'Permission denied' not in issshfwded.stderr"
     - name: "Test host1 (eth1: 192.168.6.6) ssh con from host2 (eth1: 192.168.6.66) port 22"
       command: "ssh -tt -o StrictHostKeyChecking=no 192.168.6.6"
       when: ansible_hostname == "host2"
