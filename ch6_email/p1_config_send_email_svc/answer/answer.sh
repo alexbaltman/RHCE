@@ -6,3 +6,6 @@ postconf -e "myorigin=example.com"
 postconf -e "mydestination="
 postconf -e "local_transport=error: local delivery disabled"
 systemctl restart postfix
+
+# Extra Setting:
+# postconf -e "inet_protocols=ipv4

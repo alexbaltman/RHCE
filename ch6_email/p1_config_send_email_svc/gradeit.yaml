@@ -20,30 +20,34 @@
       #shell: 'echo "blahblah PII" | mail -s "host1 null client" vagrant@example.com null client test'
       when: ansible_hostname == "host1"
     - name: Check Postfix listens on loopback int only
-      command: "postconf | grep inet_interfaces | head -1"
+      shell: "postconf | grep inet_interfaces | head -1"
       register: inet_ints
       failed_when: inet_ints.stdout != "inet_interfaces = loopback-only"
       when: ansible_hostname == "host1"
     - name: Check only local msgs forwarded
-      command: "postconf | grep mynetworks | head -1"
+      shell: "postconf | grep mynetworks | head -1"
       register: islocal_fwd_only
-      failed_when: "islocal_fwd_only.stdout != 'mynetworks = 127.0.0.1/8 [::1]/128'"
+      failed_when: "islocal_fwd_only.stdout != 'mynetworks = 127.0.0.0/8 [::1]/128'"
       when: ansible_hostname == "host1"
     - name: Check domain set to example.com
-      command: "postconf | grep myorigin | tail -1"
+      shell: "postconf | grep myorigin | tail -1"
       register: myorigin
       failed_when: myorigin.stdout != "myorigin = example.com"
       when: ansible_hostname == "host1"
     - name: Check null client fwds all mail only
-      command: "postconf | grep mydestination | head -1"
+      shell: "postconf | grep mydestination | head -1"
       register: fwdonly
       failed_when: fwdonly.stdout != "mydestination ="
       when: ansible_hostname == "host1"
     - name: Prevent local null client from sorting mail into mailboxes
-      command: "postconf | grep local_transport | tail -1"
+      shell: "postconf | grep local_transport | tail -1"
       register: nosortmail
       failed_when: "nosortmail.stdout != 'local_transport = error: local delivery disabled'"
       when: ansible_hostname == "host1"
+    - name: Pause 15 seconds so mail can be received on host2
+      pause:
+        seconds: 15
+      when: ansible_hostname == "host2"
     - name: Check maillog on host2 for email from host1
       command: 'grep "test this broh" /var/spool/mail/root'
       register: ismail
