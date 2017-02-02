@@ -20,7 +20,7 @@
       register: initiator_utils
     - fail:
         msg: "Expected iscsi-initiator-utils, got: {{ initiator_utils }}"
-      when: iscsi-initiator-utils != initiator_utils.stdout
+      when: "ansible_hostname == 'host1' and 'iscsi-initiator-utils' not in initiator_utils.stdout"
     - name: Check initiator name for host1
       command: cat /etc/iscsi/initiatorname.iscsi
       register: initiator_name

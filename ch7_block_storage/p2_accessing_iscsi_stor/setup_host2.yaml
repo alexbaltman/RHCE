@@ -35,9 +35,5 @@
       command: targetcli /iscsi/iqn.2017-01.com.example:host2/tpg1/acls create iqn.2017-01.com.example:host1
     - name: Create lun using host2.disk1 on host2
       command: targetcli /iscsi/iqn.2017-01.com.example:host2/tpg1/luns create /backstores/block/host2.disk1
-    - name: Create portal to access iscsi disk
-      command: targetcli /iscsi/iqn.2017-01.com.example:host2/tpg1/portals create
-      # This fails even though it succeeds
-      ignore_errors: yes
     - name: Save targetcli config
       command: targetcli saveconfig
