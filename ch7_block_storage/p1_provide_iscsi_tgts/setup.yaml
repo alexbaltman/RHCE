@@ -25,7 +25,7 @@
           Setup host1 to provide iSCSI targets
           1. Setup raw disk sdb and lvm 
           2. create target with block backstore named host1.disk1
-          3. Setup luns, acls, security, and portals as needed
+          3. Setup luns, acls (client iqn: iqn.2017-01.com.example:host2), security, and portals as needed
           4. Test it
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
