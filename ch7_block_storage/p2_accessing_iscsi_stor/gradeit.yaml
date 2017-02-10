@@ -13,7 +13,7 @@
       async: 0
       poll: 0
     - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300 port={{ ansible_ssh_port }}
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
     - name: Check for iscsi-initiator-utils
       command: "rpm -qa | grep iscsi-initiator-utils"
@@ -28,18 +28,18 @@
         msg: "Expected InitiatorName=iqn.2017-01.com.example:host1, got {{ initiator_name }}"
       when: "'InitiatorName=iqn.2017-01.com.example:host1' != initiator_name.stdout"
     - name: Check for attached disk
-      command: "iscsiadm -m session -P3 | grep 'Attached scsi disk sd' | awk '{print $4}'"
+      shell: "iscsiadm -m session -P3 | grep 'Attached scsi disk sd' | awk '{print $4}'"
       register: iscsi_disk
     - name: Get filesystem type for the attached scsi disk
       shell: "mount -l -t xfs | grep {{ iscsi_disk.stdout }}"
       register: isxfs
     - fail:
         msg: "Expected attached scsi disk to be of type xfs, got {{ isxfs }}"
-      when: xfs not in isxfs.stdout
+      when: "'xfs' not in isxfs.stdout"
     - name: Make a file on the XFS filesystem on the scsi disk
       file:
         path: /mnt/iscsi_disk/gradeit.txt
         state: touch
     - debug:
         msg: "You Passed!!!!"
-      when: ansible_hostname == host1
+      when: ansible_hostname == "host1"

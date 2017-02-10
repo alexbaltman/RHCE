@@ -13,9 +13,9 @@
       async: 0
       poll: 0
     - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300 port={{ ansible_ssh_port }}
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
-       Could register this in less brittle fashion - what if there were 2 rules?
+    #   Could register this in less brittle fashion - what if there were 2 rules?
     - name: Register rich rule (should be just one)
       command: firewall-cmd --list-rich-rules
       register: richrules
@@ -37,6 +37,6 @@
       command: "ssh -t -t -o StrictHostKeyChecking=no -p 443 192.168.6.6"
       when: ansible_hostname == "host2"
       register: issshfwded
-      failed_when: issshfwded.stderr != "Permission denied (publickey,gssapi-keyex,gssapi-with-mic)."
+      failed_when: '"Permission denied" not in issshfwded.stderr'
     - debug:
         msg: "You Passed!!!!"

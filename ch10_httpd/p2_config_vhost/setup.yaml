@@ -27,8 +27,9 @@
         block: |
           1. Setup, start, make persistent a webserver
           2. Setup default vhost from /srv/default/www, logs to logs/default-vhost.log using combined format, and on port 80 from anywhere
-          3. Setup 2nd vhost called wwwX.host1.com from /srv/wwwX.host1.com/www
-          4. Make the default vhost content read "Coming Soon!"
-          5. Make the www.host1.com vhost content read "wwwX"
+          3. Setup 2nd vhost called wwwX.host1.com from /srv/wwwX.host1.com/www with logs at logs/wwwX.host1.com.log
+          4. Setup an alias for the second vhost of wwwX
+          5. Make the default web page content read "Coming Soon!"
+          6. Make the wwwX.host1.com web page content read "wwwX"
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd

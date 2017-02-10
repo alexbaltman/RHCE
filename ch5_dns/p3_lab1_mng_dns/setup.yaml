@@ -57,6 +57,6 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1. host1 is a caching DNS server. It's host resolution is broken, fix DNS resolution for google.com on host1
+          1. host1 is a caching DNS server. Its host resolution is broken, fix DNS resolution for google.com on host1
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd

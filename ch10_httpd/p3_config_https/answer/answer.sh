@@ -61,6 +61,8 @@ cat <<EOF >/etc/httpd/conf.d/webappX.conf
 </VirtualHost>
 EOF
 
+# Be sure to check your configs with 'apachectl configtest', helps a bunch!
+
 systemctl start httpd
 systemctl enable httpd
 firewall-cmd --permanent --add-service=http --add-service=https

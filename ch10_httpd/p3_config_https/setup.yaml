@@ -27,9 +27,9 @@
         block: |
           1. Setup, start, make persistent a webserver
           2. Serve https://wwwX.host1.com and https://webappX.host1.com 
-          3. Use self signed certs. Serve wwwX out of /srv/wwwX/www adn webappX out of /srv/webappX/www
+          3. Use self signed certs. Serve wwwX out of /srv/wwwX/www and webappX out of /srv/webappX/www
           4. wwwX content will be 'Hello Wooorld!' and webappX will be 'My Application, yo'
           5. Add redirect from port 80 to https for both Vhost ServerNames
-          6. Test it
+          6. Test it - Should have httpd default index.html content for non-ServerName requets
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd

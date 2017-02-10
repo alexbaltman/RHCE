@@ -13,12 +13,12 @@
       async: 0
       poll: 0
     - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300 port={{ ansible_ssh_port }}
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
     - name: Fail if ipv4 addr is wrong on br0 on host1
       fail:
-        msg: "br0 ipv4 addr == {{ ansible_br0['ipv4'].address }}, wanted 192.168.7.8"
-      when: ansible_br0['ipv4'].address != "192.168.7.8"
+        msg: "br0 ipv4 addr == {{ ansible_br0['ipv4']['address'] }}, wanted 192.168.7.8"
+      when: ansible_br0['ipv4']['address'] != "192.168.7.8"
     - name: Test ping from host1 to host2 on br0 int
       command: ping -c 3 -I br0 "192.168.7.9"
     - debug:

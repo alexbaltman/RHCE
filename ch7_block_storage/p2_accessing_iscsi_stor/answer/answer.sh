@@ -22,3 +22,7 @@ mkdir -p /mnt/iscsi_disk
 echo "$uuid /mnt/iscsi_disk xfs _netdev 0 2" >> /etc/fstab
 mount -a
 touch /mnt/iscsi_disk/myfile.txt
+
+# Critical to change from node.startup = onboot to node.startup = automatic
+# https://groups.google.com/forum/#!topic/open-iscsi/8U9mAXutlyE
+sed -i 's/node.startup = onboot/node.startup = automatic/g' /var/lib/iscsi/nodes/iqn*/*/default

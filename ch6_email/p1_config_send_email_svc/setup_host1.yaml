@@ -23,14 +23,14 @@
         dest: /etc/motd
         block: |
           Setup null client that fwds all msgs to smtp server for delivery
-          1. Config Postfix mail server to only relay mail from the local sys
+          1. Config Postfix mail server to only relay mail from the local sys to 192.168.6.66 (host2)
             a. Let postfix server only listen for emails on loopback int
             b. Fwd only msgs that orign on 127.0.0.1 and ::1
           2. Set all outgoing msgs to have sender domain of example.com
           3. Prohibit mail deliver to local accounts via Postfix
             a. Config null client to fwd all mail to relay server
             b. Prevent local null client from sorting any mail into mailboxes
-          4. Test it: mail -s "serverX null client" blah@host1.example.com null client test --> looking for EOT (end of transmission)
+          4. Test it: mail -s "serverX null client" vagrant@example.com null client test <.
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd
 
