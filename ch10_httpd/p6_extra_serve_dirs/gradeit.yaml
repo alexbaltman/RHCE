@@ -1,0 +1,47 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Check for ansible v2
+      assert:
+        that:
+          - ansible_version.major == 2
+        enabled: yes
+    #- name: Restart server
+    #  command: /sbin/shutdown -r 1
+    #  async: 0
+    #  poll: 0
+    #- name: Wait for server to reboot
+    #  local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300 port={{ ansible_ssh_port }}
+    #  become: false
+    - name: 'Test usersecrets as mkting_user for access'
+      command: 'curl -Lu mkting_user:redhat http://localhost/usersecrets'
+      when: ansible_hostname == 'host1'
+    - name: 'Test usersecrets as mkting_user for access from host2'
+      command: 'curl -Lu mkting_user:redhat http://192.168.6.6/usersecrets'
+      when: ansible_hostname == 'host2'
+    - name: 'Test usersecrets as mkting_user2 for access - should FAIL'
+      command: 'curl -Lu mkting_user2:redhat http://localhost/usersecrets'
+      when: ansible_hostname == 'host1'
+      register: isuserfail
+      failed_when: "'401' not in isuserfail.stdout"
+    - name: 'Test grpsecrets as mkting_user for access'
+      command: 'curl -Lu mkting_user:redhat http://localhost/grpsecrets'
+      when: ansible_hostname == 'host1'
+    - name: 'Test grpsecrets as mkting_user2 for access'
+      command: 'curl -Lu mkting_user2:redhat http://localhost/grpsecrets'
+      when: ansible_hostname == 'host1'
+    - name: 'Test grpsecrets as mkting_user for access from host2'
+      command: 'curl -Lu mkting_user:redhat http://192.168.6.6/grpsecrets'
+      when: ansible_hostname == 'host2'
+    - name: 'Test localsecrets from host1'
+      command: 'curl -L http://localhost/localsecrets'
+      when: ansible_hostname == 'host1'
+    - name: 'Test localsecrets from host2'
+      command: 'curl -L http://192.168.6.6/grpsecrets'
+      when: ansible_hostname == 'host2'
+      register: islocalfail
+      failed_when: "'401' not in islocalfail.stdout"
+    - debug:
+        msg: "You Passed!!!!"
