@@ -17,6 +17,7 @@
       become: false
     - name: Start nfs-client.target - RHEL7.1+ will auto start nfs-secure
       service:
+        # on RHEL7.0 start: nfs-secure
         name: nfs-client.target
         state: started
         enabled: yes
