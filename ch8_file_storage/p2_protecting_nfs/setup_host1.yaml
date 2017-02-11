@@ -12,6 +12,39 @@
         name: firewalld
         state: started
         enabled: yes
+    - yum: state=present name={{ item }}
+      with_items:
+        - krb5-workstation
+        - pam_krb5
+    - name: Edit ssh_config for GSS authentication
+      lineinfile:
+        dest: /etc/ssh/ssh_config
+        regexp: '#   GSSAPIAuthentication no'
+        line: '    GSSAPIAuthentication yes'
+    - name: Edit ssh_config for GSS delegate creds
+      lineinfile:
+        dest: /etc/ssh/ssh_config
+        regexp: '#   GSSAPIDelegateCredentials no'
+        line: '    GSSAPIDelegateCredentials yes'
+    - service:
+        name: sshd
+        state: restarted
+    - lineinfile:
+        dest: /etc/krb5.conf
+        line: "# Configuration snippets may be placed in this directory as well"
+        state: absent
+    - name: Uncomment all lines in /etc/krb5.conf
+      command: "sed -i 's/#//g' /etc/krb5.conf"
+    - lineinfile:
+        dest: /etc/krb5.conf
+        regexp: "  kdc = kerberos.example.com"
+        line: "  kdc = host2.example.com"
+    - lineinfile:
+        dest: /etc/krb5.conf
+        regexp: "  admin_server = kerberos.example.com"
+        line: "  admin_server = host2.example.com"
+    - name: Enable PAM for kerberos
+      shell: authconfig --enablekrb5 --update
     - name: Create user01
       user:
         name: user01
@@ -40,8 +73,7 @@
         block: |
           Setup host1 to exort nfs share
           PRE-REQ:
-          1. Your krb5.conf is here http://192.168.6.66/krb5.conf
-          2. Your krb5.keytab is here http://192.168.6.66/krb5.keytab
+          1. Your krb5.keytab is here http://192.168.6.66/krb5.keytab
           TASKS:
           1. Setup an NFS share called /securenfs
           2. Securely export nfs share using krb5p and using nfsv4.x 

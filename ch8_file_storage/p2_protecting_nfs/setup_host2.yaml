@@ -134,7 +134,8 @@
     - service:
         name: sshd
         state: restarted
-    - command: authconfig --enablekrb5 --update
+    - name: Enable PAM for kerberos
+      command: authconfig --enablekrb5 --update
     - name: Add user root to kerberos domain w/ password kerberos
       shell: "echo 'addprinc -pw kerberos root' | kadmin.local"
     - name: Create user01 
@@ -167,13 +168,6 @@
     - name: Move krb5.keytab into place for http
       copy: 
         src: /etc/krb5.keytab
-        dest: /var/www/html/
-        owner: apache
-        group: apache
-        remote_src: True
-    - name: Move krb5.conf into place for http
-      copy: 
-        src: /etc/krb5.conf
         dest: /var/www/html/
         owner: apache
         group: apache
