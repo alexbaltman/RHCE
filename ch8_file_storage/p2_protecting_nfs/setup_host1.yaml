@@ -12,6 +12,18 @@
         name: firewalld
         state: started
         enabled: yes
+    - name: Create user01
+      user:
+        name: user01
+        state: present
+    - name: Set user01 pass to user01
+      command: "echo 'user01' | passwd user01 --stdin"
+    - name: Create user02 
+      user:
+        name: user02
+        state: present
+    - name: Set user02 pass to user02
+      command: "echo 'user02' | passwd user02 --stdin"
     - find: path=/etc/yum.repos.d
       register: myfiles
     - file: 
@@ -27,11 +39,14 @@
         dest: /etc/motd
         block: |
           Setup host1 to exort nfs share
-          1. Setup an NFS share called /securenfs
+          PRE-REQ:
+          1. Your krb5.conf is here http://192.168.6.66/krb5.conf
           2. Your krb5.keytab is here http://192.168.6.66/krb5.keytab
+          TASKS:
+          1. Setup an NFS share called /securenfs
           2. Securely export nfs share using krb5p and using nfsv4.x 
           3. Allow r/w from host2
-          Optional (ungraded)
+          OPTIONAL: (ungraded)
           1. Open up remote showmount access (mountd, rpc-bind)
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64
           Note2: You can see this message in /etc/motd

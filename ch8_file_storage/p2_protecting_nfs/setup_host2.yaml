@@ -135,12 +135,24 @@
         name: sshd
         state: restarted
     - command: authconfig --enablekrb5 --update
-    - name: Create user - user01
+    - name: Add user root to kerberos domain w/ password kerberos
+      shell: "echo 'addprinc -pw kerberos root' | kadmin.local"
+    - name: Create user01 
       user:
         name: user01
         state: present
-    - name: Set user01 pass
+    - name: Set user01 pass to user01
       command: "echo 'user01' | passwd user01 --stdin"
+    - name: Add user01 to kerberos domain with pass user01
+      shell: "echo 'addprinc -pw user01 user01' | kadmin.local"
+    - name: Create user02 
+      user:
+        name: user02
+        state: present
+    - name: Set user02 pass user02
+      command: "echo 'user02' | passwd user02 --stdin"
+    - name: Add user02 to kerberos domain with pass user02
+      shell: "echo 'addprinc -pw user02 user02' | kadmin.local"
     - name: Install httpd
       yum:
         name: httpd

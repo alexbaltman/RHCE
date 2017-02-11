@@ -13,7 +13,7 @@
       async: 0
       poll: 0
     - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300 port={{ ansible_ssh_port }}
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
     - yum:
         name: cifs-utils
@@ -67,6 +67,10 @@
         dest: /.smbcreds_rob
         line: "password=redhat"
       when: ansible_hostname == "host2"
+    - file:
+        path: /mnt/rob
+        state: directory
+      when: ansible_hostname == "host2"
     - mount:
         name: /mnt/rob
         src: //192.168.6.6/smbshare
@@ -81,10 +85,6 @@
     - fail:
         msg: "Expected 2 mounts, got {{ mymounts }}"
       when: ansible_hostname == "host2" and mymounts.stdout != "2"
-    - file:
-        path: /mnt/rob
-        state: directory
-      when: ansible_hostname == "host2"
     # Expected that user cannot create rob.txt file
     - file:
         path: /mnt/rob/rob.txt
