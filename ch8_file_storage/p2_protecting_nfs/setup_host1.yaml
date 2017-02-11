@@ -16,6 +16,7 @@
       with_items:
         - krb5-workstation
         - pam_krb5
+        - wget
     - name: Edit ssh_config for GSS authentication
       lineinfile:
         dest: /etc/ssh/ssh_config
@@ -76,8 +77,8 @@
           1. Your krb5.keytab is here http://192.168.6.66/krb5.keytab
           TASKS:
           1. Setup an NFS share called /securenfs
-          2. Securely export nfs share using krb5p and using nfsv4.x 
-          3. Allow r/w from host2
+          2. Securely export nfs share, including selinux contexts
+          3. Enable r/w for user01
           OPTIONAL: (ungraded)
           1. Open up remote showmount access (mountd, rpc-bind)
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64

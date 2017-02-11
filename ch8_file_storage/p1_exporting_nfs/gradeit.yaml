@@ -27,6 +27,8 @@
         fstype: nfs
         state: present
       when: ansible_hostname == "host2"
+    - name: Mount all fstab entries
+      shell: mount -a
     - name: Create file on nfsshare
       file:
         path: /mnt/nfsshare/gradeit.txt

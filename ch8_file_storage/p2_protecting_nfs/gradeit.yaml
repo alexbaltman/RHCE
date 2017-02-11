@@ -13,51 +13,46 @@
       async: 0
       poll: 0
     - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300 port={{ ansible_ssh_port }}
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
-    #- name: Fix gssproxy cache stor
-    #  lineinfile:
-    #    dest: /etc/gssproxy/gssproxy.conf
-    #    regexp: "cred_store = ccache:FILE:/var/lib/gssproxy/clients/krb5cc_%U"
-    #    line: "cred_store = ccache:FILE:/tmp/krb5cc_%U"
-    #- name: Fix gssproxy cache stor
-    #  lineinfile:
-    #    dest: /etc/gssproxy/gssproxy.conf
-    #    regexp: "  cred_store = client_keytab:/var/lib/gssproxy/clients/%U.keytab"
-    #    state: absent 
-    - name: Start nfs. RHEL 7.1+ should also start nfs-secure
+    - name: Start nfs-client.target - RHEL7.1+ will auto start nfs-secure
       service:
         name: nfs-client.target
         state: started
         enabled: yes
-    - name: Create mount point for nfs
+    - name: Create dir /mnt/securenfs
       file:
         path: /mnt/securenfs
         state: directory
       when: ansible_hostname == "host2"
-    # Not sure if the selinux is required here
-    #- command: semanage fcontext -a -t nfs_t "/mnt/nfsshare(/.*)?"
-    #- command: restorecon -Rv /mnt/nfsshare
-    # mount -t nfs4 -o vers=4.2,sec=krb5p 192.168.6.6:/securenfs /mnt/securenfs
-    # INCOMPLETE:
-    #- name: Mount nfsshare
-      #mount:
-        #name: /mnt/nfsshare
-        #src: 192.168.6.6:/securenfs
-        #fstype: nfs
-        #state: present
-      #when: ansible_hostname == "host2"
-    - name: Create file on nfsshare
+    # mount -t nfs4 -o vers=4.2,sec=krb5p,rw 192.168.6.6:/securenfs /mnt/securenfs
+    - name: Mount securenfs
+      mount:
+        name: /mnt/securenfs
+        src: 192.168.6.6:/securenfs
+        fstype: nfs4
+        state: present
+        opts: _netdev,vers=4.2,sec=krb5p,rw
+      when: ansible_hostname == "host2"
+    - name: Mount all fstab entries
+      command: mount -a
+    - name: Create Kerberos ticket for user01
+      shell: 'echo "user01" | kinit'
+      become_user: user01
+      when: ansible_hostname == "host2"
+    - name: Create file on securenfs
       file:
-        path: /mnt/nfsshare/gradeit.txt
+        path: /mnt/securenfs/gradeit.txt
         state: touch
+      become_user: user01
       when: ansible_hostname == "host2"
     - name: Check for gradeit.txt on host1 now
       stat:
-        path: /nfsshare/gradeit.txt
+        path: /securenfs/gradeit.txt
       register: st
+      when: ansible_hostname == "host1"
     - fail:
-        msg: "Expected /nfsshare/gradeit.txt on host1, got {{ st }}"
+        msg: "Expected /securenfs/gradeit.txt on host1, got {{ st }}"
       when: ansible_hostname == "host1" and st.stat.exists == false
     - debug:
         msg: "You Passed!!!!"
