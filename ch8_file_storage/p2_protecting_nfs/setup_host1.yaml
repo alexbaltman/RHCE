@@ -73,11 +73,12 @@
         dest: /etc/motd
         block: |
           Setup host1 to exort nfs share
+          WARNING - as of this writing RHCE is on 7.0, this practice is on 7.2 and will vary ~5%
           PRE-REQ:
           1. Your krb5.keytab is here http://192.168.6.66/krb5.keytab
           TASKS:
           1. Setup an NFS share called /securenfs
-          2. Securely export nfs share, including selinux contexts
+          2. Securely export nfs share with selinux contexts
           3. Enable r/w for user01
           OPTIONAL: (ungraded)
           1. Open up remote showmount access (mountd, rpc-bind)

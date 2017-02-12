@@ -1,0 +1,7 @@
+Make a script that
+when given foo as the first arg returns bar
+when given bar as the first arg returns foo
+or given anything else puts to stderr the usage
+
+
+Make the script globally available on the system.

@@ -14,7 +14,7 @@ chmod 0600 /etc/krb5.keytab
 # cat /proc/fs/nfsd/versions --> -4.2 means disabled. Had to reboot to get the +.
 sed -i 's/RPCNFSDARGS=\"\"/RPCNFSDARGS=\"-V 4.2\"/' /etc/sysconfig/nfs
 # verbose logging for GSS - optional
-sed -i 's/RPCGSSDARGS=\"\"/RPCNFSDARGS=\"-vvv\"' /etc/sysconfig/nfs
+sed -i 's/RPCGSSDARGS=\"\"/RPCGSSDARGS=\"-vvv\"/' /etc/sysconfig/nfs
 mkdir /securenfs
 chown user01 /securenfs
 semanage fcontext -a -t nfs_t "/securenfs(/.*)?"

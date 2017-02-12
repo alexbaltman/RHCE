@@ -15,10 +15,15 @@
     - name: Wait for server to reboot
       local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
-    - name: Start nfs-client.target - RHEL7.1+ will auto start nfs-secure
+    - name: Start nfs-client.target
       service:
         # on RHEL7.0 start: nfs-secure
         name: nfs-client.target
+        state: started
+        enabled: yes
+    - name: Start nfs-secure
+      service:
+        name: nfs-secure
         state: started
         enabled: yes
     - name: Create dir /mnt/securenfs
@@ -37,6 +42,7 @@
       when: ansible_hostname == "host2"
     - name: Mount all fstab entries
       command: mount -a
+      when: ansible_hostname == "host2"
     - name: Create Kerberos ticket for user01
       shell: 'echo "user01" | kinit'
       become_user: user01

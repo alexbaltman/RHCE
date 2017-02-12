@@ -13,7 +13,7 @@
       async: 0
       poll: 0
     - name: Wait for server to reboot
-      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300 port={{ ansible_ssh_port }}
+      local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
     - name: Create mount point for nfs
       file:
@@ -38,6 +38,7 @@
       stat:
         path: /nfsshare/gradeit.txt
       register: st
+      when: ansible_hostname == "host1"
     - fail:
         msg: "Expected /nfsshare/gradeit.txt on host1, got {{ st }}"
       when: ansible_hostname == "host1" and st.stat.exists == false
