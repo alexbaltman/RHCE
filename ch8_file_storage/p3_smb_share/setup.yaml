@@ -12,6 +12,19 @@
         name: firewalld
         state: started
         enabled: yes
+    - name: Create marketing grp
+      group:
+        name: marketing
+        state: present
+    - name: Add user Brian w/ grp marketing
+      user:
+        name: brian
+        shell: /sbin/nologin
+        groups: marketing
+    - name: Add user rob
+      user:
+        name: rob
+        shell: /sbin/nologin
     - find: path=/etc/yum.repos.d
       register: myfiles
     - file: 
@@ -22,7 +35,7 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1. Create and share via samba /smbshare
+          1. Create and share via samba /smbshare called smbshare
           2. Create and give perms to user grp Marketing 
           3. Non-marketing grps have read perms
           4. Create samba-only user brian who is part of marketing w/ pass redhat

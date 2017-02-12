@@ -15,6 +15,7 @@
     - name: Wait for server to reboot
       local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
+    # Note: for smbclient (pkg samba-client) for some reason there is a kerberos error and you have to upgrade krb5-libs from 1.13 to 1.14. Eror occurs on smbclient -L 192.168.6.6 on host2.
     - name: Install cifs-utils
       yum:
         name: cifs-utils
@@ -54,7 +55,7 @@
     - name: Look for brian mnt and register var
       shell: 'mount | grep -E "brian" | wc -l'
       register: mymounts
-    - name: Fail if more than 1 mnts in var
+    - name: Fail if exactly 1 mnt is not present for brian
       fail:
         msg: "Expected 1 mount, got {{ mymounts }}"
       when: ansible_hostname == "host2" and mymounts.stdout != "1"
