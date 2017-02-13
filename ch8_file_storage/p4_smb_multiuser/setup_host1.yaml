@@ -12,6 +12,23 @@
         name: firewalld
         state: started
         enabled: yes
+    - name: Create marketing grp
+      group:
+        name: marketing
+        state: present
+    - name: Add user Brian w/ grp marketing
+      user:
+        name: brian
+        shell: /bin/bash
+        groups: marketing
+    - name: Add user rob
+      user:
+        name: rob
+        shell: /bin/bash
+    - name: Add user mary
+      user:
+        name: mary
+        shell: /bin/bash
     - find: path=/etc/yum.repos.d
       register: myfiles
     - file: 
@@ -23,7 +40,7 @@
         dest: /etc/motd
         block: |
           1. Create Mount Point /mnt/multiuser
-          2. Mount samba share /smbshare on server 192.168.6.66 with smb user rob as default and credentials in /.smbcreds_multiuser
+          2. Mount samba share named smbshare on server 192.168.6.66 with smb user rob as default and credentials in /.smbcreds_multiuser
           3. Access /smbshare rw for smb user brian
           4. Access /smbshare r for smb user rob
           Note: You can find rpms here: http://mirror.centos.org/centos/7/os/x86_64

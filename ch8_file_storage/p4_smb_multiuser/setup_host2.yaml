@@ -37,6 +37,7 @@
     # Not sure how to do tabs w/ lineinfile and samba requires it
     - shell: echo -e '\tpath= /smbshare' >>/etc/samba/smb.conf
     - shell: echo -e '\twrite list = @marketing' >>/etc/samba/smb.conf
+    - shell: echo -e '\tread list = rob' >>/etc/samba/smb.conf
     - user:
         name: brian
         shell: /sbin/nologin
