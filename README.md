@@ -1,16 +1,29 @@
 # RHCE on RHEL-7 - Study Guide
 
 ## How to use
+cd to a chapter, then a section
+vagrant up
+vagrant ssh host1
+a motd will display with your challenge
+sudo su - to get to root as needed
+when you are done exit root and the vm
+then run ./grade.sh, which will reboot the vm, wait for it to come up (which takes a min b/c of normal wait time + ansible). If needed you can comment out the two boot sections near the start in the gradeit.yaml and manually reboot, which is a bit quicker.
+It will tell you pass/fail. Both vms have to pass if it does two passes.
 
-## Need to study from notes after first take of exam
-- ch2 p3 - Config IPv6
-- ch3 p1 - Config Network Teaming
-- ch4 p1 - Config firewall
-- ch4 p2 - Manage Rich Rules
-- ch4 p3 - Masq. and Port forwarding
-- ch5 p2 - Config caching Nameserver
-- ch6 p1 - Config send only email
+## Known Issues, TODO, etc:
+ch5_dns/p2_dns_troubleshooting does not really work right
+ch8 - Need to add gen group share + answer + gradeit.yaml. Set gid on group for both client and server so we do not need ldap setup. Could do this in p1 or lab or elsewhere.
+    - Could also add general public nfs and samba shares too
+ch8p3 could test the workgroup too. Could also negative test some of the smb.conf config params like public = yes and read list, etc.
+ch8p4 - *Swaps users instead of becoming brian and testing if cifscreds set. Should test cifscreds somehow. can escalate through higher priv user, but to desescalate privs cifscreds clearall doesn't seem to work, you need to umount the cifs mnt.
+      - Use user mary to test that she can do nothing on there b/c she has no smbpasswd
+ch8p5 add lab as needed + client setup for nfs and smb???
 
-## Known issues
-ch2 p2: ipv6 setup is a bit wonky still. First, w/ vagrant version 1.8.1 ipv6 was not booting the vm and it gave static ipv6 template error from embedded gem. After upgrading 10 1.9.1 I was able to at least boot it.
-ch2 p2: Booting host1 and host2 vagrant/virtualbox inconsistently bring up eth1 w/ ipv6 addr. I had to manually configure both one time, another time host2 came up fine but host1 did not. Originally, I was just going to have someone setup ipv6 on host1 from scratch, but b/c of the inconsistent networking I expanded it to setting up both. Vagrant/virtualbox at least seem to consistently bring up the backend plumbing so it should theoretically work once yo properly setup ipv6 on both nodes. 
+It may possibly to do this in order to help w/ boot timing in some of the gradeit problems.
+ date --date "now + 5 seconds" | awk '{ print $4 }'
+
+## OTHER
+Need to verify all the answers - they are mostly good, but not 100%/perfect
+Want more name labels for gradeit.yaml and setup.yaml files for clarity and easier end-user troubleshooting
+Should add a complete exam using 2-3 VMs in dir practice_exam
+Could use more thorough testing, esp negative testing (things that should not happen).
