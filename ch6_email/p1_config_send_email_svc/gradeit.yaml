@@ -27,7 +27,7 @@
     - name: Check only local msgs forwarded
       shell: "postconf | grep mynetworks | head -1"
       register: islocal_fwd_only
-      failed_when: "islocal_fwd_only.stdout != 'mynetworks = 127.0.0.0/8 [::1]/128'"
+      failed_when: "islocal_fwd_only.stdout != 'mynetworks = 127.0.0.0/8, [::1]/128'"
       when: ansible_hostname == "host1"
     - name: Check domain set to example.com
       shell: "postconf | grep myorigin | tail -1"

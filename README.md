@@ -11,6 +11,7 @@ then run ./grade.sh, which will reboot the vm, wait for it to come up (which tak
 It will tell you pass/fail. Both vms have to pass if it does two passes.
 
 ## Known Issues, TODO, etc:
+ch4p5 - really need to get dmz to be set as default b/c that is what exam req.s, unfortunately it prevents vagrant and ansible from working correclty if you do
 ch5_dns/p2_dns_troubleshooting does not really work right
 ch8 - Need to add gen group share + answer + gradeit.yaml. Set gid on group for both client and server so we do not need ldap setup. Could do this in p1 or lab or elsewhere.
     - Could also add general public nfs and samba shares too
