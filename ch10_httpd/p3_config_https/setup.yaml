@@ -25,7 +25,7 @@
       blockinfile:
         dest: /etc/motd
         block: |
-          1. Setup, start, make persistent a webserver
+          1. Setup, start, make persistent a webserver w/ the default httpd webpage
           2. Serve https://wwwX.host1.com and https://webappX.host1.com 
           3. Use self signed certs. Serve wwwX out of /srv/wwwX/www and webappX out of /srv/webappX/www
           4. wwwX content will be 'Hello Wooorld!' and webappX will be 'My Application, yo'

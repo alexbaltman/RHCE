@@ -57,7 +57,7 @@ cat <<EOF >/etc/httpd/conf.d/webappX.conf
 <VirtualHost *:80>
   ServerName webappX.host1.com
   RewriteEngine on
-  RewriteRule ^(/.*)$ https://%{HTTP_HOST} [redirect=301]
+  RewriteRule ^(/.*)$ https://%{HTTP_HOST}$1 [redirect=301]
 </VirtualHost>
 EOF
 

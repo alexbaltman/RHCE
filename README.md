@@ -13,11 +13,6 @@ It will tell you pass/fail. Both vms have to pass if it does two passes.
 ## Known Issues, TODO, etc:
 ch4p5 - really need to get dmz to be set as default b/c that is what exam req.s, unfortunately it prevents vagrant and ansible from working correclty if you do
 ch5_dns/p2_dns_troubleshooting does not really work right
-ch8 - Need to add gen group share + answer + gradeit.yaml. Set gid on group for both client and server so we do not need ldap setup. Could do this in p1 or lab or elsewhere.
-    - Could also add general public nfs and samba shares too
-ch8p3 could test the workgroup too. Could also negative test some of the smb.conf config params like public = yes and read list, etc.
-ch8p4 - *Swaps users instead of becoming brian and testing if cifscreds set. Should test cifscreds somehow. can escalate through higher priv user, but to desescalate privs cifscreds clearall doesn't seem to work, you need to umount the cifs mnt.
-      - Use user mary to test that she can do nothing on there b/c she has no smbpasswd
 ch8p5 add lab as needed + client setup for nfs and smb???
 
 It may possibly to do this in order to help w/ boot timing in some of the gradeit problems.
