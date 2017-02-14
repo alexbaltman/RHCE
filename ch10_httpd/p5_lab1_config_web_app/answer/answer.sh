@@ -26,6 +26,7 @@ chmod 0600 /etc/pki/tls/private
 cat <<EOF >/etc/httpd/conf.d/webappX.conf
 <VirtualHost *:443>
   ServerName webappX.host1.com
+  DocumentRoot /srv/webappX/www
   SSLEngine On
   SSLCertificateFile /etc/pki/tls/certs/webappX_pub.crt
   SSLCertificateKeyFile /etc/pki/tls/private/webappX_pvt.key
