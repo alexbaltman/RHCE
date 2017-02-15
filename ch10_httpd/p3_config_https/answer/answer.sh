@@ -61,6 +61,11 @@ cat <<EOF >/etc/httpd/conf.d/webappX.conf
 </VirtualHost>
 EOF
 
+cat <<EOF >/etc/httpd/conf.d/00-default-vhost.conf 
+<VirtualHost *:80>
+  DocumentRoot /var/www/html
+</VirtualHost>
+
 # Be sure to check your configs with 'apachectl configtest', helps a bunch!
 
 systemctl start httpd

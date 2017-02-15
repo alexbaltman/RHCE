@@ -15,42 +15,55 @@
     - name: Wait for server to reboot
       local_action: wait_for host={{ ansible_ssh_host }} state=started delay=15 timeout=300
       become: false
-    - command: 'curl -kL host1'
+    - name: curl host1 insecure plus follow redirect, register var for fail test
+      command: 'curl -kL host1'
       register: host1
-    - fail:
+    - name: Fail if Testing 123 is not in var
+      fail:
         msg: "Expected a testing pg with: 'Testing 123..', got {{ host1 }}"
       when: "'Testing 123..' not in host1.stdout"
-    - command: 'curl -kL wwwX.host1.com'
+    - name: curl wwwX.host1.com insecure and follow redirect, register var for fail test
+      command: 'curl -kL wwwX.host1.com'
       register: wwwXhost1com
-    - fail:
+    - name: 'Fail if Hello Wooorld! not in var'
+      fail:
         msg: "Expected 'Hello Wooorld!', got {{ wwwXhost1com }}"
       when: "'Hello Wooorld!' != wwwXhost1com.stdout"
-    - command: 'curl -kL webappX.host1.com'
+    - name: curl webappX.host1.com insecure and follow redirect, register var for fail test
+      command: 'curl -kL webappX.host1.com'
       register: webappXhost1com
-    - fail:
+    - name: Fail if My Application, yo is not in var
+      fail:
         msg: "Expected 'My Application, yo', got {{ webappXhost1com }}"
       when: "'My Application, yo' != webappXhost1com.stdout"
-
-    - command: 'curl -L wwwX.host1.com'
+    - name: curl wwwX.host1.com and follow redirect, register var for fail test
+      command: 'curl -L wwwX.host1.com'
       register: wwwX_secure
       ignore_errors: yes
-    - fail:
+    - name: Fail if cert issuer not trusted not in var
+      fail:
         msg: "Expected 'certificate issuer has been marked as not trusted by the user' , got {{ wwwX_insecure }}"
       when: "'certificate issuer has been marked as not trusted by the user' not in wwwX_secure.stderr"
-    - command: 'curl -L webappX.host1.com'
+    - name: curl webappX.host1.com and follow redirect, register var for fail test
+      command: 'curl -L webappX.host1.com'
       register: webappX_secure
       ignore_errors: yes
-    - fail:
+    - name: fail if cert issuer not trusted not in var
+      fail:
         msg: "Expected 'certificate issuer has been marked as not trusted by the user', got {{ webappX_secure }}"
       when: "'certificate issuer has been marked as not trusted by the user' not in webappX_secure.stderr"
-    - command: 'curl wwwX.host1.com'
+    - name: curl wwwX.host1.com http for fail test
+      command: 'curl wwwX.host1.com'
       register: wwwX_redirect
-    - fail:
+    - name: Fail if 301 not in var
+      fail:
         msg: "Expected '301 Moved Permanently', got {{ wwwX_redirect }}"
       when: "'301 Moved Permanently' not in wwwX_redirect.stdout"
-    - command: 'curl webappX.host1.com'
+    - name: curl webappX.host1.com http, register var for fail test
+      command: 'curl webappX.host1.com'
       register: webappX_redirect
-    - fail:
+    - name: Fail if 301 not in var
+      fail:
         msg: "Expected '301 Moved Permanently', got {{ webappX_redirect }}"
       when: "'301 Moved Permanently' not in webappX_redirect.stdout"
     - debug:
