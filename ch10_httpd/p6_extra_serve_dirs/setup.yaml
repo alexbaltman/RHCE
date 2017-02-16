@@ -13,11 +13,11 @@
         state: present
     - user:
         name: mkting_user
-        group: marketing
+        groups: marketing
         state: present
     - user:
         name: mkting_user2
-        group: marketing
+        groups: marketing
         state: present
     - service:
         name: firewalld
